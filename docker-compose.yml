@@ -1,0 +1,180 @@
+services:
+
+  # ─────────────── Databases ───────────────────────────────────────────────
+  postgres-agent:
+    image: postgres:16-alpine
+    container_name: payment-postgres-agent
+    environment:
+      POSTGRES_DB: payment_agent
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-agent-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-banking:
+    image: postgres:16-alpine
+    container_name: payment-postgres-banking
+    environment:
+      POSTGRES_DB: payment_banking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-banking-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-rag:
+    image: postgres:16-alpine
+    container_name: payment-postgres-rag
+    environment:
+      POSTGRES_DB: payment_rag
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-rag-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────── ChromaDB ────────────────────────────────────────────────
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: payment-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      ALLOW_RESET: "true"
+      ANONYMIZED_TELEMETRY: "false"
+
+  # ─────────────── Keycloak ────────────────────────────────────────────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    container_name: payment-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: dev-mem
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+
+  # ─────────────── pgAdmin ─────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: payment-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@payment.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - ./keycloak/../pgadmin/servers.json:/pgadmin4/servers.json
+    depends_on:
+      - postgres-agent
+      - postgres-banking
+      - postgres-rag
+
+  # ─────────────── Backend: Payment Agent ──────────────────────────────────
+  payment-agent:
+    build:
+      context: ./payment-agent
+      dockerfile: Dockerfile
+    container_name: payment-agent
+    ports:
+      - "8080:8080"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DB_HOST: postgres-agent
+      DB_PORT: 5432
+      DB_NAME: payment_agent
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      CHROMA_HOST: http://chromadb
+      CHROMA_PORT: 8000
+      BANKING_SERVICE_URL: http://payment-banking-service:8081
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: payment
+    depends_on:
+      postgres-agent:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      payment-banking-service:
+        condition: service_started
+
+  # ─────────────── Backend: Banking Service ────────────────────────────────
+  payment-banking-service:
+    build:
+      context: ./payment-banking-service
+      dockerfile: Dockerfile
+    container_name: payment-banking-service
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: postgres-banking
+      DB_PORT: 5432
+      DB_NAME: payment_banking
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+    depends_on:
+      postgres-banking:
+        condition: service_healthy
+
+  # ─────────────── Backend: RAG Loader ─────────────────────────────────────
+  payment-rag:
+    build:
+      context: ./payment-rag
+      dockerfile: Dockerfile
+    container_name: payment-rag
+    ports:
+      - "8090:8090"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DB_HOST: postgres-rag
+      DB_PORT: 5432
+      DB_NAME: payment_rag
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      CHROMA_HOST: http://chromadb
+      CHROMA_PORT: 8000
+    depends_on:
+      postgres-rag:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+
+  # ─────────────── Frontend ─────────────────────────────────────────────────
+  payment-frontend:
+    build:
+      context: ./payment-frontend
+      dockerfile: Dockerfile
+    container_name: payment-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - payment-agent
+
+volumes:
+  postgres-agent-data:
+  postgres-banking-data:
+  postgres-rag-data:
+  chroma-data:

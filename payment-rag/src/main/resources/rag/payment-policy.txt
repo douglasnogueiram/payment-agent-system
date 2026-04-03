@@ -1,0 +1,169 @@
+POLÍTICA DE SERVIÇOS DE PAGAMENTO — FINTECH PAGAMENTOS S.A.
+Versão 1.0 — Abril de 2026
+
+=============================================================
+1. ABERTURA DE CONTA
+=============================================================
+
+1.1. Para abrir uma conta de pagamento, o usuário deve ter no mínimo 18 anos de idade,
+     CPF válido e ativo na Receita Federal, e endereço residencial no território brasileiro.
+
+1.2. A verificação de identidade é realizada por meio de selfie + documento oficial com foto
+     (RG, CNH ou passaporte). O processo é conduzido de forma digital e pode levar até 2
+     dias úteis para aprovação.
+
+1.3. Menores de 18 anos podem ter conta com finalidade de poupança, desde que haja um
+     responsável legal cadastrado e aprovado.
+
+1.4. Contas empresariais (CNPJ) exigem o contrato social e documento de identidade do
+     representante legal.
+
+=============================================================
+2. PIX
+=============================================================
+
+2.1. O Pix é disponível 24 horas por dia, 7 dias por semana, incluindo feriados.
+
+2.2. Limite padrão para transações Pix:
+     - Período diurno (06h–20h): R$ 20.000,00 por transação.
+     - Período noturno (20h–06h): R$ 1.000,00 por transação.
+     - Limite diário total: R$ 50.000,00.
+
+2.3. O usuário pode solicitar alteração de limite via aplicativo. Aumentos de limite passam
+     por análise de crédito e podem levar até 1 dia útil.
+
+2.4. Chaves Pix aceitas: CPF, CNPJ, e-mail, número de celular e chave aleatória (EVP).
+     Cada CPF pode cadastrar até 5 chaves Pix.
+
+2.5. Pix agendado: o usuário pode agendar transferências com até 60 dias de antecedência.
+
+2.6. Em caso de Pix enviado para chave errada, o prazo para devolução voluntária é de 90
+     dias. Devoluções compulsórias por fraude seguem as regras do Banco Central do Brasil
+     (BCB).
+
+=============================================================
+3. BOLETO BANCÁRIO
+=============================================================
+
+3.1. O serviço de pagamento de boletos está disponível para todos os clientes com conta ativa.
+
+3.2. Boletos vencidos podem ser pagos com acréscimo de juros e multa conforme definido
+     pelo emissor, desde que o código de barras ainda esteja ativo.
+
+3.3. Limite diário para pagamento de boletos: R$ 10.000,00.
+
+3.4. O processamento de boletos ocorre em dias úteis. Pagamentos realizados após 21h
+     podem ser processados no próximo dia útil.
+
+3.5. A geração de boletos para cobrança está disponível para contas pessoa jurídica e para
+     pessoas físicas mediante análise. O prazo para compensação é de 1 dia útil após o
+     pagamento confirmado.
+
+=============================================================
+4. TRANSFERÊNCIAS TED E DOC
+=============================================================
+
+4.1. Transferências TED estão disponíveis em dias úteis, das 07h às 17h. O crédito ocorre
+     no mesmo dia se enviado dentro do horário.
+
+4.2. DOC está sendo gradualmente descontinuado pelo sistema financeiro; recomenda-se o
+     uso do Pix ou TED.
+
+4.3. Limite padrão TED: R$ 20.000,00 por operação; R$ 50.000,00 por dia.
+
+=============================================================
+5. CARTÃO PRÉ-PAGO
+=============================================================
+
+5.1. O cartão pré-pago virtual é emitido imediatamente após a aprovação da conta.
+     O cartão físico é enviado em até 10 dias úteis para o endereço cadastrado.
+
+5.2. Limite de recarga: R$ 5.000,00 por dia; R$ 20.000,00 por mês.
+
+5.3. O cartão pode ser usado em compras nacionais e internacionais onde a bandeira
+     (Visa/Mastercard) for aceita.
+
+5.4. Compras internacionais estão sujeitas à taxa de câmbio do dia mais spread de 1,5%.
+
+5.5. O cartão pode ser bloqueado temporariamente pelo usuário via aplicativo a qualquer
+     momento, sem custo.
+
+=============================================================
+6. LIMITES E CONTROLES DE SEGURANÇA
+=============================================================
+
+6.1. Resumo dos limites padrão:
+     - Pix diurno por transação:     R$  20.000,00
+     - Pix noturno por transação:    R$   1.000,00
+     - Pix limite diário:            R$  50.000,00
+     - TED por operação:             R$  20.000,00
+     - TED limite diário:            R$  50.000,00
+     - Boleto limite diário:         R$  10.000,00
+     - Recarga de cartão por dia:    R$   5.000,00
+     - Recarga de cartão por mês:    R$  20.000,00
+
+6.2. Clientes com histórico de relacionamento superior a 6 meses e sem ocorrências podem
+     solicitar aumento de limites mediante análise.
+
+6.3. Transações suspeitas podem ser bloqueadas automaticamente pelo sistema antifraude.
+     O cliente é notificado por push e e-mail para confirmar ou contestar a operação.
+
+=============================================================
+7. TARIFAS
+=============================================================
+
+7.1. Conta de pagamento: isenta de tarifa de manutenção.
+
+7.2. Pix: gratuito para pessoas físicas. Para pessoas jurídicas, até 20 transações mensais
+     gratuitas; a partir da 21ª, R$ 0,90 por transação.
+
+7.3. TED: R$ 5,00 por operação para contas de outros bancos.
+     Transferências internas (entre contas da mesma instituição) são gratuitas.
+
+7.4. Boleto emitido: R$ 2,50 por boleto (somente para PJ ou PF habilitada).
+     Pagamento de boleto: gratuito.
+
+7.5. Saque via rede de correspondentes: R$ 4,90 por saque; limite de 3 saques por mês.
+
+7.6. Segunda via do cartão físico: R$ 15,00 (perda ou roubo: gratuita mediante B.O.).
+
+=============================================================
+8. CONTESTAÇÃO E ESTORNO
+=============================================================
+
+8.1. O cliente tem até 60 dias corridos para contestar uma transação não reconhecida
+     via aplicativo ou central de atendimento.
+
+8.2. O prazo de análise é de até 10 dias úteis para transações nacionais e 30 dias
+     para transações internacionais.
+
+8.3. Em caso de fraude comprovada, o estorno é realizado em até 2 dias úteis após o
+     encerramento da análise.
+
+8.4. Devoluções de Pix por fraude seguem o Mecanismo Especial de Devolução (MED)
+     conforme normativos do Banco Central do Brasil.
+
+=============================================================
+9. ENCERRAMENTO DE CONTA
+=============================================================
+
+9.1. O cliente pode encerrar a conta a qualquer momento, sem ônus, desde que o saldo
+     seja zerado ou transferido previamente.
+
+9.2. Chaves Pix são automaticamente desvinculadas no momento do encerramento.
+
+9.3. Dados são retidos por 5 anos após o encerramento conforme exigência regulatória
+     (Resolução BCB nº 1/2020 e legislação de combate à lavagem de dinheiro).
+
+=============================================================
+10. SUPORTE
+=============================================================
+
+10.1. Atendimento via chat no aplicativo: 24h por dia, 7 dias por semana.
+10.2. Central telefônica: 0800 000 0000, segunda a sexta das 8h às 20h.
+10.3. E-mail: suporte@fintech-pagamentos.com.br — prazo de resposta: 2 dias úteis.
+10.4. Para emergências (cartão roubado, fraude): ligue 24h para 0800 000 0001.
+
+=============================================================
+FIM DO DOCUMENTO
+=============================================================

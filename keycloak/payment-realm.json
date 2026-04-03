@@ -1,0 +1,49 @@
+{
+  "realm": "payment",
+  "displayName": "Payment Agent",
+  "enabled": true,
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "sslRequired": "external",
+  "clients": [
+    {
+      "clientId": "payment-frontend",
+      "name": "Payment Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": ["http://localhost:3000/*", "http://localhost:5174/*"],
+      "webOrigins": ["http://localhost:3000", "http://localhost:5174"],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "payment-agent",
+      "name": "Payment Agent Backend",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "payment-agent-secret",
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+  "roles": {
+    "realm": [
+      { "name": "USER", "description": "Standard bank customer" },
+      { "name": "ADMIN", "description": "Bank administrator" }
+    ]
+  },
+  "users": [
+    {
+      "username": "testuser",
+      "email": "testuser@payment.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "testpass123", "temporary": false }],
+      "realmRoles": ["USER"]
+    }
+  ]
+}

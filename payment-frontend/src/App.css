@@ -1,0 +1,67 @@
+/* =========================================================
+   App shell
+   ========================================================= */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Tabs ──────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  background: var(--navy);
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  flex-shrink: 0;
+}
+
+.tab {
+  padding: 10px 24px;
+  background: transparent;
+  border: none;
+  color: #ccd9e8;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color .15s, border-bottom .15s;
+  border-bottom: 3px solid transparent;
+}
+
+.tab:hover { color: var(--white); }
+
+.tab--active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+/* ── Main content ──────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Chat layout (SplitView) ───────────────────────────── */
+.chat-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* =========================================================
+   Mobile  (≤ 768px)
+   ========================================================= */
+@media (max-width: 768px) {
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 6px;
+    font-size: 0.82rem;
+  }
+
+  .chat-layout {
+    flex-direction: column;
+  }
+}

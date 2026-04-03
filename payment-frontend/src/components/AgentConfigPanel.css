@@ -1,0 +1,211 @@
+.agent-config {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.agent-config__loading {
+  padding: 40px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.agent-config__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.agent-config__title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0 0 4px;
+}
+
+.agent-config__subtitle {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.agent-config__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.ac-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background .15s, opacity .15s;
+}
+
+.ac-btn--primary { background: var(--navy); color: var(--white); }
+.ac-btn--primary:hover { background: #254d7a; }
+.ac-btn--ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.ac-btn--ghost:hover { background: #f0f2f5; }
+.ac-btn--ghost:disabled { opacity: 0.4; cursor: default; }
+.ac-btn--loading { opacity: 0.8; cursor: default; }
+.ac-btn--saved { background: #1a7f4b; color: var(--white); cursor: default; }
+.ac-btn--error { background: #d93025; color: var(--white); cursor: default; }
+.ac-btn--sm { padding: 4px 12px; font-size: 0.8rem; }
+
+.ac-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: ac-spin .7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes ac-spin { to { transform: rotate(360deg); } }
+
+/* ── Editor ────────────────────────────────────────────────── */
+.agent-config__editor-section {
+  margin-bottom: 32px;
+}
+
+.agent-config__textarea {
+  width: 100%;
+  min-height: 380px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  color: var(--text);
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+
+.agent-config__textarea:focus { border-color: var(--navy); }
+
+.agent-config__textarea--dirty { border-color: #e6a817; }
+.agent-config__textarea--dirty:focus { border-color: #c98f00; }
+
+.agent-config__desc-row {
+  margin-top: 10px;
+}
+
+.agent-config__desc-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  outline: none;
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.agent-config__desc-input:focus { border-color: var(--navy); }
+.agent-config__desc-input::placeholder { color: var(--muted); }
+
+/* ── History ───────────────────────────────────────────────── */
+.agent-config__history-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0 0 14px;
+}
+
+.agent-config__empty {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.agent-config__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ac-version {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--white);
+  transition: border-color .15s;
+}
+
+.ac-version--active {
+  border-color: var(--navy);
+  background: #f0f5fc;
+}
+
+.ac-version__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.ac-version__id {
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 0.875rem;
+}
+
+.ac-version__badge {
+  background: var(--navy);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: .03em;
+}
+
+.ac-version__date {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.ac-version__desc {
+  font-size: 0.8rem;
+  color: var(--text);
+  font-style: italic;
+}
+
+.ac-version__preview {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: monospace;
+  white-space: pre-wrap;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+/* ── Mobile ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .agent-config {
+    padding: 16px 14px;
+  }
+  .agent-config__header {
+    flex-direction: column;
+  }
+  .agent-config__textarea {
+    min-height: 260px;
+  }
+}
