@@ -67,8 +67,10 @@ public class OnboardingService {
         String candidate;
         do {
             candidate = String.format("%011d", new Random().nextLong(100_000_000_000L));
-        } while (repository.findAll().stream()
-                .anyMatch(r -> candidate.equals(r.getAccountNumber())));
-        return candidate;
+            final String check = candidate;
+            if (repository.findAll().stream().noneMatch(r -> check.equals(r.getAccountNumber()))) {
+                return candidate;
+            }
+        } while (true);
     }
 }

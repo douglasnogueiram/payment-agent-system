@@ -54,7 +54,7 @@ services:
 
   # ─────────────── ChromaDB ────────────────────────────────────────────────
   chromadb:
-    image: chromadb/chroma:latest
+    image: ghcr.io/chroma-core/chroma:1.0.0
     container_name: payment-chromadb
     ports:
       - "8000:8000"
@@ -63,6 +63,12 @@ services:
     environment:
       ALLOW_RESET: "true"
       ANONYMIZED_TELEMETRY: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8000' 2>/dev/null && echo ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   # ─────────────── Keycloak ────────────────────────────────────────────────
   keycloak:
@@ -102,6 +108,7 @@ services:
     container_name: payment-agent
     ports:
       - "8080:8080"
+    restart: unless-stopped
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       DB_HOST: postgres-agent
@@ -116,10 +123,8 @@ services:
     depends_on:
       postgres-agent:
         condition: service_healthy
-      chromadb:
-        condition: service_started
-      keycloak:
-        condition: service_started
+      chroma-init:
+        condition: service_completed_successfully
       payment-banking-service:
         condition: service_started
 
@@ -163,6 +168,16 @@ services:
       celcoin-mock:
         condition: service_started
 
+  # ─────────────── ChromaDB Init ───────────────────────────────────────────
+  # Creates the PaymentKnowledge collection before the apps start.
+  # Workaround for Spring AI 1.1.0-SNAPSHOT not auto-creating via initialize-schema=true.
+  chroma-init:
+    image: curlimages/curl:8.6.0
+    entrypoint: ["sh", "-c", "until curl -sf http://chromadb:8000/api/v1/heartbeat; do echo waiting; sleep 2; done && curl -sf -X POST http://chromadb:8000/api/v1/collections -H 'Content-Type: application/json' -d '{\"name\":\"PaymentKnowledge\",\"metadata\":{\"hnsw:space\":\"cosine\"}}' && echo done || echo exists"]
+    depends_on:
+      chromadb:
+        condition: service_healthy
+
   # ─────────────── Backend: RAG Loader ─────────────────────────────────────
   payment-rag:
     build:
@@ -171,6 +186,7 @@ services:
     container_name: payment-rag
     ports:
       - "8090:8090"
+    restart: unless-stopped
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       DB_HOST: postgres-rag
@@ -182,8 +198,8 @@ services:
     depends_on:
       postgres-rag:
         condition: service_healthy
-      chromadb:
-        condition: service_started
+      chroma-init:
+        condition: service_completed_successfully
 
   # ─────────────── Frontend ─────────────────────────────────────────────────
   payment-frontend:
@@ -193,8 +209,10 @@ services:
     container_name: payment-frontend
     ports:
       - "3000:80"
+    restart: unless-stopped
     depends_on:
       - payment-agent
+      - payment-rag
 
 volumes:
   postgres-agent-data:
