@@ -20,19 +20,33 @@ public class AccountController {
         this.service = service;
     }
 
-    public record OpenAccountRequest(String name, String cpf, String email, String transactionPassword) {}
+    public record OpenAccountRequest(
+        String name,
+        String cpf,
+        String email,
+        String phoneNumber,
+        String motherName,
+        String birthDate,
+        String transactionPassword
+    ) {}
 
     @PostMapping
     public ResponseEntity<?> openAccount(@RequestBody OpenAccountRequest req) {
         try {
-            Account account = service.openAccount(req.name(), req.cpf(), req.email(), req.transactionPassword());
+            Account account = service.openAccount(
+                req.name(), req.cpf(), req.email(),
+                req.phoneNumber() != null ? req.phoneNumber() : "+5511999999999",
+                req.motherName() != null ? req.motherName() : "Nome da Mãe",
+                req.birthDate() != null ? req.birthDate() : "01-01-1990",
+                req.transactionPassword()
+            );
             return ResponseEntity.ok(Map.of(
                 "message", "Conta aberta com sucesso!",
                 "accountNumber", account.getAccountNumber(),
                 "agency", account.getAgency(),
                 "name", account.getName()
             ));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -70,4 +84,3 @@ public class AccountController {
         }
     }
 }
-

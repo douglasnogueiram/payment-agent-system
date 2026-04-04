@@ -33,9 +33,12 @@ public class Account {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
 
-    /** BCrypt hash of the 4-6 digit transaction password */
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
+
+    /** Celcoin onboarding reference — used for future integration calls */
+    @Column(name = "celcoin_onboarding_id")
+    private String celcoinOnboardingId;
 
     private boolean active = true;
 
@@ -52,10 +55,13 @@ public class Account {
     public String getAccountNumber() { return accountNumber; }
     public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
     public String getAgency() { return agency; }
+    public void setAgency(String agency) { this.agency = agency; }
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public String getCelcoinOnboardingId() { return celcoinOnboardingId; }
+    public void setCelcoinOnboardingId(String id) { this.celcoinOnboardingId = id; }
     public boolean isActive() { return active; }
     public Instant getCreatedAt() { return createdAt; }
 }

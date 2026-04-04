@@ -12,42 +12,98 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class AccountService {
 
     private final AccountRepository accountRepo;
     private final TransactionRepository txRepo;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final CelcoinClient celcoin;
+    private final BCryptPasswordEncoder encoder;
 
-    public AccountService(AccountRepository accountRepo, TransactionRepository txRepo) {
+    public AccountService(AccountRepository accountRepo, TransactionRepository txRepo, CelcoinClient celcoin, BCryptPasswordEncoder encoder) {
         this.accountRepo = accountRepo;
         this.txRepo = txRepo;
+        this.celcoin = celcoin;
+        this.encoder = encoder;
     }
 
+    /**
+     * Opens a new account via Celcoin onboarding API.
+     * Polls until CONFIRMED (max 30 seconds), then stores locally with hashed transaction password.
+     */
     @Transactional
-    public Account openAccount(String name, String cpf, String email, String transactionPassword) {
-        if (accountRepo.existsByCpf(cpf)) {
-            throw new IllegalArgumentException("CPF já possui conta cadastrada: " + cpf);
+    public Account openAccount(String name, String cpf, String email,
+                               String phoneNumber, String motherName, String birthDate,
+                               String transactionPassword) {
+        if (accountRepo.existsByCpf(cpf.replaceAll("\\D", ""))) {
+            throw new IllegalArgumentException("CPF já possui conta cadastrada.");
         }
+
+        String clientCode = UUID.randomUUID().toString();
+
+        // Call Celcoin: create account
+        Map<String, Object> createResp = celcoin.post(
+            "/baas/v2/account/natural-person/create",
+            Map.of(
+                "clientCode", clientCode,
+                "accountOnboardingType", "BANKACCOUNT",
+                "documentNumber", cpf.replaceAll("\\D", ""),
+                "phoneNumber", phoneNumber,
+                "email", email,
+                "motherName", motherName,
+                "fullName", name,
+                "birthDate", birthDate,
+                "address", Map.of(
+                    "postalCode", "01310100",
+                    "street", "Av. Paulista",
+                    "number", "1000",
+                    "neighborhood", "Bela Vista",
+                    "city", "São Paulo",
+                    "state", "SP"
+                ),
+                "isPoliticallyExposedPerson", false
+            )
+        );
+
+        if (!"PROCESSING".equals(createResp.get("status"))) {
+            Object error = createResp.get("error");
+            String msg = error != null ? error.toString() : "Erro ao criar conta na Celcoin.";
+            throw new IllegalStateException(msg);
+        }
+
+        @SuppressWarnings("unchecked")
+        String onboardingId = (String) ((Map<String, Object>) createResp.get("body")).get("onBoardingId");
+
+        // Poll until CONFIRMED (max 30s, every 2s)
+        Map<String, Object> statusResp = pollUntilConfirmed(onboardingId, 15, 2000);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> accountData = (Map<String, Object>) ((Map<String, Object>) statusResp.get("body")).get("account");
+
+        String accountNumber = (String) accountData.get("account");
+        String branch = (String) accountData.get("branch");
+
         Account account = new Account();
         account.setName(name);
-        account.setCpf(cpf);
+        account.setCpf(cpf.replaceAll("\\D", ""));
         account.setEmail(email);
-        account.setAccountNumber(generateAccountNumber());
-        account.setPasswordHash(encoder.encode(transactionPassword));
-        // Welcome credit of R$0.00 — real BaaS would handle this
+        account.setAccountNumber(accountNumber);
+        account.setAgency(branch);
         account.setBalance(BigDecimal.ZERO);
+        account.setPasswordHash(encoder.encode(transactionPassword));
+        account.setCelcoinOnboardingId(onboardingId);
         Account saved = accountRepo.save(account);
 
-        // Record account creation as first transaction
+        // Record opening transaction
         Transaction tx = new Transaction();
-        tx.setAccountNumber(saved.getAccountNumber());
+        tx.setAccountNumber(accountNumber);
         tx.setType(Transaction.TransactionType.ACCOUNT_CREDIT);
         tx.setAmount(BigDecimal.ZERO);
         tx.setBalanceAfter(BigDecimal.ZERO);
-        tx.setDescription("Abertura de conta corrente");
+        tx.setDescription("Abertura de conta corrente via Celcoin");
         txRepo.save(tx);
 
         return saved;
@@ -85,10 +141,7 @@ public class AccountService {
     }
 
     @Transactional
-    public Transaction payBoleto(String accountNumber, String transactionPassword,
-                                  String boletoCode) {
-        // In a real BaaS, amount would come from barcode parsing.
-        // Mock: extract amount from last 10 digits of barcode (simplified).
+    public Transaction payBoleto(String accountNumber, String transactionPassword, String boletoCode) {
         BigDecimal amount = parseBoletoAmount(boletoCode);
         Account account = findAndAuthenticate(accountNumber, transactionPassword);
         if (account.getBalance().compareTo(amount) < 0) {
@@ -118,16 +171,23 @@ public class AccountService {
         return account;
     }
 
-    private String generateAccountNumber() {
-        String candidate;
-        do {
-            candidate = String.format("%08d", new Random().nextInt(100_000_000));
-        } while (accountRepo.findByAccountNumber(candidate).isPresent());
-        return candidate;
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> pollUntilConfirmed(String onboardingId, int maxAttempts, long delayMs) {
+        for (int i = 0; i < maxAttempts; i++) {
+            Map<String, Object> resp = celcoin.get(
+                "/baas-onboarding/v1/account/check?onboardingId=" + onboardingId
+            );
+            String status = (String) resp.get("status");
+            if ("CONFIRMED".equals(status)) return resp;
+            if ("ERROR".equals(status)) {
+                throw new IllegalStateException("Celcoin retornou ERROR no onboarding: " + resp.get("error"));
+            }
+            try { Thread.sleep(delayMs); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        }
+        throw new IllegalStateException("Timeout aguardando confirmação de conta na Celcoin.");
     }
 
     private BigDecimal parseBoletoAmount(String boletoCode) {
-        // Simplified: real implementation would decode the barcode field 10
         try {
             String digits = boletoCode.replaceAll("\\D", "");
             if (digits.length() >= 10) {
@@ -135,6 +195,6 @@ public class AccountService {
                 return BigDecimal.valueOf(cents, 2);
             }
         } catch (NumberFormatException ignored) {}
-        return new BigDecimal("10.00"); // fallback for mock
+        return new BigDecimal("10.00");
     }
 }

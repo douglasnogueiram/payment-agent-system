@@ -123,6 +123,24 @@ services:
       payment-banking-service:
         condition: service_started
 
+  # ─────────────── Celcoin Mock ─────────────────────────────────────────────
+  celcoin-mock:
+    build:
+      context: ./celcoin-mock
+      dockerfile: Dockerfile
+    container_name: celcoin-mock
+    ports:
+      - "8082:8082"
+    environment:
+      DB_HOST: postgres-banking
+      DB_PORT: 5432
+      DB_NAME: payment_banking
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      ONBOARDING_DELAY_MS: 3000
+    depends_on:
+      postgres-banking:
+        condition: service_healthy
+
   # ─────────────── Backend: Banking Service ────────────────────────────────
   payment-banking-service:
     build:
@@ -136,9 +154,14 @@ services:
       DB_PORT: 5432
       DB_NAME: payment_banking
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      CELCOIN_BASE_URL: http://celcoin-mock:8082
+      CELCOIN_CLIENT_ID: mock-client
+      CELCOIN_CLIENT_SECRET: mock-secret
     depends_on:
       postgres-banking:
         condition: service_healthy
+      celcoin-mock:
+        condition: service_started
 
   # ─────────────── Backend: RAG Loader ─────────────────────────────────────
   payment-rag:
