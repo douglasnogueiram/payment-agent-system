@@ -1,0 +1,255 @@
+services:
+
+  # ─────────────── Databases ───────────────────────────────────────────────────
+  postgres-agent:
+    image: postgres:16-alpine
+    container_name: payment-postgres-agent
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: payment_agent
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-agent-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-banking:
+    image: postgres:16-alpine
+    container_name: payment-postgres-banking
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: payment_banking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-banking-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-celcoin:
+    image: postgres:16-alpine
+    container_name: payment-postgres-celcoin
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: celcoin_mock
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-celcoin-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-rag:
+    image: postgres:16-alpine
+    container_name: payment-postgres-rag
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: payment_rag
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-rag-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-keycloak:
+    image: postgres:16-alpine
+    container_name: payment-postgres-keycloak
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-keycloak-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────── ChromaDB ────────────────────────────────────────────────────
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:1.0.0
+    container_name: payment-chromadb
+    restart: unless-stopped
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      ALLOW_RESET: "false"
+      ANONYMIZED_TELEMETRY: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8000' 2>/dev/null && echo ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ─────────────── Keycloak (production mode) ──────────────────────────────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    container_name: payment-keycloak
+    restart: unless-stopped
+    # 'start' = production mode; --import-realm loads payment-realm.prod.json on first boot
+    command: start --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${DB_PASSWORD}
+      # Public hostname — Keycloak embeds this in token issuer and login page links
+      KC_HOSTNAME: meuagentepix.com.br
+      # Path prefix that nginx proxies at /kc/
+      KC_HTTP_RELATIVE_PATH: /kc
+      # Allow plain HTTP internally (nginx terminates TLS)
+      KC_HTTP_ENABLED: "true"
+      KC_HTTPS_ENABLED: "false"
+      # Trust X-Forwarded-* headers from nginx
+      KC_PROXY_HEADERS: xforwarded
+    volumes:
+      # Only import the production realm file (not the dev one with test users and LAN URIs)
+      - ./keycloak/payment-realm.prod.json:/opt/keycloak/data/import/payment-realm.json:ro
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
+
+  # ─────────────── Celcoin Mock ────────────────────────────────────────────────
+  celcoin-mock:
+    build:
+      context: ./celcoin-mock
+      dockerfile: Dockerfile
+    container_name: celcoin-mock
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres-celcoin
+      DB_PORT: 5432
+      DB_NAME: celcoin_mock
+      DB_PASSWORD: ${DB_PASSWORD}
+      ONBOARDING_DELAY_MS: 3000
+      BANKING_WEBHOOK_URL: http://payment-banking-service:8081/api/webhooks/celcoin/pix
+      PIX_WEBHOOK_DELAY_MS: 3000
+    depends_on:
+      postgres-celcoin:
+        condition: service_healthy
+
+  # ─────────────── Banking Service ─────────────────────────────────────────────
+  payment-banking-service:
+    build:
+      context: ./payment-banking-service
+      dockerfile: Dockerfile
+    container_name: payment-banking-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres-banking
+      DB_PORT: 5432
+      DB_NAME: payment_banking
+      DB_PASSWORD: ${DB_PASSWORD}
+      CELCOIN_BASE_URL: http://celcoin-mock:8082
+      CELCOIN_CLIENT_ID: mock-client
+      CELCOIN_CLIENT_SECRET: mock-secret
+    depends_on:
+      postgres-banking:
+        condition: service_healthy
+      celcoin-mock:
+        condition: service_started
+
+  # ─────────────── ChromaDB Init ───────────────────────────────────────────────
+  chroma-init:
+    image: curlimages/curl:8.6.0
+    entrypoint: ["sh", "-c", "until curl -sf http://chromadb:8000/api/v2/heartbeat; do echo waiting; sleep 2; done && curl -sf -X POST http://chromadb:8000/api/v2/collections -H 'Content-Type: application/json' -d '{\"name\":\"PaymentKnowledge\",\"metadata\":{\"hnsw:space\":\"cosine\"}}' && echo done || echo exists"]
+    depends_on:
+      chromadb:
+        condition: service_healthy
+
+  # ─────────────── Payment Agent ───────────────────────────────────────────────
+  payment-agent:
+    build:
+      context: ./payment-agent
+      dockerfile: Dockerfile
+    container_name: payment-agent
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DB_HOST: postgres-agent
+      DB_PORT: 5432
+      DB_NAME: payment_agent
+      DB_PASSWORD: ${DB_PASSWORD}
+      CHROMA_HOST: http://chromadb
+      CHROMA_PORT: 8000
+      BANKING_SERVICE_URL: http://payment-banking-service:8081
+      # Internal Keycloak URL — used only for JWK set (JWT signature validation)
+      # KC_HTTP_RELATIVE_PATH=/kc so the certs endpoint includes /kc/
+      KEYCLOAK_URL: http://keycloak:8080/kc
+      KEYCLOAK_REALM: payment
+      CORS_ORIGINS: https://meuagentepix.com.br
+    depends_on:
+      postgres-agent:
+        condition: service_healthy
+      chroma-init:
+        condition: service_completed_successfully
+      payment-banking-service:
+        condition: service_started
+      keycloak:
+        condition: service_started
+
+  # ─────────────── RAG Service ─────────────────────────────────────────────────
+  payment-rag:
+    build:
+      context: ./payment-rag
+      dockerfile: Dockerfile
+    container_name: payment-rag
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DB_HOST: postgres-rag
+      DB_PORT: 5432
+      DB_NAME: payment_rag
+      DB_PASSWORD: ${DB_PASSWORD}
+      CHROMA_HOST: http://chromadb
+      CHROMA_PORT: 8000
+    depends_on:
+      postgres-rag:
+        condition: service_healthy
+      chroma-init:
+        condition: service_completed_successfully
+
+  # ─────────────── Frontend ─────────────────────────────────────────────────────
+  payment-frontend:
+    build:
+      context: ./payment-frontend
+      dockerfile: Dockerfile.prod
+    container_name: payment-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Let's Encrypt certs — created by certbot before this service starts
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - payment-agent
+      - payment-rag
+      - keycloak
+
+volumes:
+  postgres-agent-data:
+  postgres-banking-data:
+  postgres-celcoin-data:
+  postgres-rag-data:
+  postgres-keycloak-data:
+  chroma-data:

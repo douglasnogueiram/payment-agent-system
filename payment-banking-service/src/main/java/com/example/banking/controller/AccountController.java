@@ -27,7 +27,8 @@ public class AccountController {
         String phoneNumber,
         String motherName,
         String birthDate,
-        String transactionPassword
+        String transactionPassword,
+        String keycloakUserId
     ) {}
 
     @PostMapping
@@ -38,7 +39,8 @@ public class AccountController {
                 req.phoneNumber() != null ? req.phoneNumber() : "+5511999999999",
                 req.motherName() != null ? req.motherName() : "Nome da Mãe",
                 req.birthDate() != null ? req.birthDate() : "01-01-1990",
-                req.transactionPassword()
+                req.transactionPassword(),
+                req.keycloakUserId()
             );
             return ResponseEntity.ok(Map.of(
                 "message", "Conta aberta com sucesso!",
@@ -68,6 +70,45 @@ public class AccountController {
     }
 
     public record StatementRequest(String accountNumber, String transactionPassword, int days) {}
+
+    /** Internal endpoint — called by payment-agent to resolve account number from JWT sub. */
+    @GetMapping("/by-user/{keycloakUserId}")
+    public ResponseEntity<?> getByUser(@PathVariable String keycloakUserId) {
+        return service.findByKeycloakUserId(keycloakUserId)
+                .<ResponseEntity<?>>map(a -> ResponseEntity.ok(Map.of(
+                        "accountNumber", a.getAccountNumber(),
+                        "agency", a.getAgency(),
+                        "name", a.getName()
+                )))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/by-email/{email}")
+    public ResponseEntity<?> getByEmail(@PathVariable String email) {
+        return service.findByEmail(email)
+                .<ResponseEntity<?>>map(a -> ResponseEntity.ok(Map.of(
+                        "accountNumber", a.getAccountNumber(),
+                        "agency", a.getAgency(),
+                        "name", a.getName()
+                )))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    public record LinkUserRequest(String keycloakUserId, String email) {}
+
+    /**
+     * Links a keycloakUserId to an existing account found by email.
+     * Called automatically by payment-agent when an account exists but has no keycloakUserId yet.
+     */
+    @PostMapping("/link-user")
+    public ResponseEntity<?> linkUser(@RequestBody LinkUserRequest req) {
+        try {
+            Map<String, Object> result = service.linkKeycloakUser(req.keycloakUserId(), req.email());
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 
     @PostMapping("/statement")
     public ResponseEntity<?> getStatement(@RequestBody StatementRequest req) {

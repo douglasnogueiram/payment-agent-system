@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Payment Agent System — Arquitetura</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      padding: 40px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #1a1a2e;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-bottom: 32px;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      color: #4A2D70;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #f0e8ff;
+    }
+    .mermaid { width: 100%; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #4A2D70;
+      color: white;
+      padding: 10px 16px;
+      text-align: left;
+    }
+    td { padding: 9px 16px; border-bottom: 1px solid #eee; }
+    tr:nth-child(even) td { background: #faf8ff; }
+
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .flow-num {
+      background: #4A2D70;
+      color: white;
+      border-radius: 50%;
+      min-width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .flow-text {
+      font-size: 0.9rem;
+      color: #333;
+      padding-top: 4px;
+      line-height: 1.5;
+    }
+    .flow-text code {
+      background: #f0e8ff;
+      color: #4A2D70;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+    }
+    .flow-arrow {
+      margin-left: 14px;
+      color: #aaa;
+      font-size: 1.1rem;
+    }
+
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .tag-agent   { background: #f0e8ff; color: #4A2D70; }
+    .tag-banking { background: #fde8e8; color: #c0392b; }
+    .tag-rag     { background: #e8f8ee; color: #2e8b57; }
+    .tag-auth    { background: #fff3e0; color: #b07820; }
+    .tag-db      { background: #e8ecf0; color: #2c3e50; }
+    .tag-fe      { background: #e8f2ff; color: #2c5f8a; }
+    .tag-mock    { background: #fef9e7; color: #7d6608; }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .service-box {
+      border-radius: 8px;
+      padding: 14px 16px;
+      border: 1px solid #eee;
+    }
+    .service-box h3 { font-size: 0.9rem; margin-bottom: 6px; }
+    .service-box ul { font-size: 0.8rem; color: #555; padding-left: 16px; }
+    .service-box ul li { margin-bottom: 3px; }
+
+    .pix-keys {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .pix-key-card {
+      background: #fef9e7;
+      border: 1px solid #f9e79f;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+    }
+    .pix-key-card strong { display: block; color: #7d6608; margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; }
+    .pix-key-card code { font-size: 0.78rem; color: #333; word-break: break-all; }
+
+    footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #aaa;
+      margin-top: 16px;
+    }
+
+    @media print {
+      body { background: white; padding: 20px; }
+      .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Payment Agent System</h1>
+<p class="subtitle">Arquitetura completa da solução — gerado em <span id="dt"></span></p>
+
+<!-- DIAGRAM -->
+<div class="card">
+  <h2>Diagrama de Arquitetura</h2>
+  <div class="mermaid">
+graph TB
+    subgraph Browser["🌐 Browser / Mobile (HTTPS)"]
+        FE["React 18 + Vite + TypeScript\nHTTP :3000 → HTTPS :3443\nChat · Voz · Imagem · QR Code · Pix Tracker"]
+    end
+
+    subgraph Auth["🔐 Autenticação"]
+        KC["Keycloak 26.1\nport 8180\nRealm: payment\nAuthorization Code Flow"]
+    end
+
+    subgraph nginx["🔁 nginx (payment-frontend)"]
+        NX["HTTP→HTTPS redirect\n/api/* → payment-agent:8080\n/banking/* → banking-service:8081\n/rag/* → payment-rag:8090\n/kc/token → keycloak:8080 (proxy anti-mixed-content)"]
+    end
+
+    subgraph OpenAI["☁️ OpenAI"]
+        GPT["GPT-4o\nchat + tools + vision"]
+        TTS["gpt-4o-mini-tts\nText-to-Speech"]
+        STT["gpt-4o-audio-preview\nSpeech-to-Text"]
+    end
+
+    subgraph AgentStack["🤖 Agente de IA"]
+        PA["payment-agent\nSpring Boot 3.3.5 · Spring AI 1.1.0\nport 8080"]
+    end
+
+    subgraph RAGStack["📚 RAG"]
+        PRAG["payment-rag\nSpring Boot · port 8090"]
+        CHROMA["ChromaDB 1.0.0\nport 8000\nPaymentKnowledge"]
+    end
+
+    subgraph BankingStack["🏦 Banking"]
+        PBS["payment-banking-service\nSpring Boot · port 8081"]
+    end
+
+    subgraph MockStack["🧪 Celcoin Mock"]
+        CM["celcoin-mock\nSpring Boot · port 8082\nDICT · PIX · Boleto · Onboarding\nEMV QR Code Decoder"]
+    end
+
+    subgraph Databases["🗄️ Persistência"]
+        PGA[("postgres-agent\n5433 · payment_agent")]
+        PGB[("postgres-banking\n5434 · payment_banking")]
+        PGR[("postgres-rag\n5435 · payment_rag")]
+        PGC[("postgres-celcoin\n5436 · celcoin_mock")]
+        PGADM["pgAdmin 4\nport 5050"]
+    end
+
+    FE -->|"Authorization Code Flow"| KC
+    KC -->|"JWT RS256"| FE
+    FE -->|"Bearer JWT (HTTPS)"| NX
+    NX -->|"/api/*"| PA
+    NX -->|"/banking/*"| PBS
+    NX -->|"/rag/*"| PRAG
+    NX -->|"/kc/token"| KC
+    PA -->|"valida JWT via JWKS"| KC
+    PA <-->|"GPT-4o chat + vision + tools"| GPT
+    PA -->|"TTS: texto → áudio"| TTS
+    PA -->|"STT: áudio WAV → texto"| STT
+    PA <-->|"QuestionAnswerAdvisor"| CHROMA
+    PRAG -->|"embeddings + store"| CHROMA
+    PA -->|"openAccount · getBalance · getStatement\npayPix · payBoleto · decodeQrCode"| PBS
+    PBS -->|"onboarding · DICT\npayPix · payBoleto\nEMV decode"| CM
+    PA --- PGA
+    PBS --- PGB
+    PRAG --- PGR
+    CM --- PGC
+    PGADM -.- PGA
+    PGADM -.- PGB
+    PGADM -.- PGR
+    PGADM -.- PGC
+
+    classDef browser fill:#4A90D9,stroke:#2C5F8A,color:#fff
+    classDef auth fill:#E8A838,stroke:#B07820,color:#fff
+    classDef agent fill:#7B4EA6,stroke:#4A2D70,color:#fff
+    classDef rag fill:#2E8B57,stroke:#1A5E38,color:#fff
+    classDef banking fill:#C0392B,stroke:#7B241C,color:#fff
+    classDef mock fill:#B7950B,stroke:#7D6608,color:#fff
+    classDef db fill:#2C3E50,stroke:#1A252F,color:#fff
+    classDef external fill:#7f8c8d,stroke:#5d6d7e,color:#fff
+
+    class FE,NX browser
+    class KC auth
+    class PA agent
+    class GPT,TTS,STT external
+    class PRAG,CHROMA rag
+    class PBS banking
+    class CM mock
+    class PGA,PGB,PGR,PGC,PGADM db
+  </div>
+</div>
+
+<!-- SERVICES -->
+<div class="card">
+  <h2>Serviços e Responsabilidades</h2>
+  <div class="service-grid">
+    <div class="service-box">
+      <span class="tag tag-fe">Frontend</span>
+      <h3>payment-frontend</h3>
+      <ul>
+        <li>React 18 + Vite + TypeScript</li>
+        <li>HTTPS com certificado autoassinado (SAN)</li>
+        <li>SSE streaming chat</li>
+        <li>Authorization Code Flow (sem PKCE — HTTP LAN)</li>
+        <li>Token proxy via nginx (/kc/token) — sem mixed-content</li>
+        <li>PinPad — botão inline no chat, senha mascarada</li>
+        <li>Upload de imagens (galeria ou câmera) com resize canvas</li>
+        <li>Gravação de áudio push-to-hold → WAV → STT</li>
+        <li>Leitura de QR Code Pix (jsQR) via câmera ou galeria</li>
+        <li>Pix Tracker — stepper em tempo real (PENDING→SUCCESS)</li>
+        <li>Comprovante PDF download (BACEN-compliant)</li>
+        <li>Tabs: Chat, Transações, RAG, Voz, Agente</li>
+        <li>nginx proxy + Docker DNS resolver</li>
+      </ul>
+    </div>
+    <div class="service-box">
+      <span class="tag tag-auth">Auth</span>
+      <h3>Keycloak</h3>
+      <ul>
+        <li>Realm: payment</li>
+        <li>Client: payment-frontend (public)</li>
+        <li>Authorization Code Flow</li>
+        <li>redirectUris: localhost + 192.168.15.50 (HTTP e HTTPS)</li>
+        <li>webOrigins: ["+"] (espelha redirectUris)</li>
+        <li>Claims: name, given_name, family_name, email</li>
+        <li>Registro de novos usuários habilitado</li>
+      </ul>
+    </div>
+    <div class="service-box">
+      <span class="tag tag-agent">Agente</span>
+      <h3>payment-agent</h3>
+      <ul>
+        <li>Spring AI ChatClient + GPT-4o</li>
+        <li>MessageChatMemoryAdvisor (memória por sessão)</li>
+        <li>QuestionAnswerAdvisor (RAG)</li>
+        <li>6 tools: openAccount, getBalance, getStatement, payPix, payBoleto, decodeQrCode</li>
+        <li>Multimodal: leitura de imagens (recibos, notas, QR)</li>
+        <li>TTS: POST /api/tts/speech → gpt-4o-mini-tts</li>
+        <li>STT: POST /api/stt/transcribe → gpt-4o-audio-preview (WAV)</li>
+        <li>Resolve conta por keycloakUserId ou email (sem perguntar)</li>
+        <li>accountNumber injetado via ToolContext</li>
+        <li>JWT validation via JWK Set URI (issuer agnóstico)</li>
+        <li>CORS: HTTP+HTTPS para localhost e RFC-1918</li>
+        <li>AgentPromptService: versionamento de prompts</li>
+      </ul>
+    </div>
+    <div class="service-box">
+      <span class="tag tag-banking">Banking</span>
+      <h3>payment-banking-service</h3>
+      <ul>
+        <li>AccountService: abertura, saldo, extrato</li>
+        <li>PaymentController: PIX por chave, boleto, QR Code</li>
+        <li>POST /api/payments/pix/qrcode/decode → EMV decoder</li>
+        <li>CelcoinClient: OAuth2 token cache automático</li>
+        <li>BCrypt: senha de transação (6 dígitos)</li>
+        <li>TransactionEventLogger: rastreamento de eventos Pix</li>
+        <li>PdfReceiptService: comprovante BACEN (OpenPDF)</li>
+        <li>PdfStatementStore: tokens de download (10 min)</li>
+        <li>Webhook handler: PAID/FAILED → atualiza tx + eventos</li>
+        <li>CORS: HTTP+HTTPS para localhost e RFC-1918</li>
+      </ul>
+    </div>
+    <div class="service-box">
+      <span class="tag tag-mock">Mock</span>
+      <h3>celcoin-mock</h3>
+      <ul>
+        <li>Banco próprio isolado (postgres-celcoin)</li>
+        <li>Onboarding: CBE001–CBE022 (CPF, idade, endereço)</li>
+        <li>DICT: GET /celcoin/pix/v2/dict/key/{key}</li>
+        <li>7 chaves PIX seedadas (CPF, phone, email, EVP)</li>
+        <li>PIX transfer: PIE001–PIE010 + webhook assíncrono</li>
+        <li>Boleto: BLE001–BLE004</li>
+        <li>EMV Decoder: POST /pix/v1/emv/decode (estático e dinâmico)</li>
+        <li>OAuth2 mock: POST /v5/token</li>
+      </ul>
+    </div>
+    <div class="service-box">
+      <span class="tag tag-rag">RAG</span>
+      <h3>payment-rag</h3>
+      <ul>
+        <li>Upload de documentos (PDF, TXT, DOCX)</li>
+        <li>Chunking + embeddings via OpenAI</li>
+        <li>ChromaDB: coleção PaymentKnowledge</li>
+        <li>Versionamento de documentos por hash SHA-256</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PIX KEYS -->
+<div class="card">
+  <h2>Chaves PIX Cadastradas no Mock (DICT)</h2>
+  <p style="font-size:0.85rem;color:#666;margin-bottom:12px">Apenas estas chaves retornam sucesso. Qualquer outra retorna <code style="background:#fde8e8;color:#c0392b;padding:1px 6px;border-radius:4px">PIE001 — Chave não encontrada</code></p>
+  <div class="pix-keys">
+    <div class="pix-key-card"><strong>CPF</strong><code>12345678901</code><br>João da Silva · Itaú</div>
+    <div class="pix-key-card"><strong>CPF</strong><code>98765432100</code><br>Maria Oliveira · Bradesco</div>
+    <div class="pix-key-card"><strong>Celular</strong><code>+5511999990001</code><br>Carlos Souza · Inter</div>
+    <div class="pix-key-card"><strong>Celular</strong><code>+5521988887777</code><br>Ana Paula Ferreira · Banco do Brasil</div>
+    <div class="pix-key-card"><strong>E-mail</strong><code>pix@celcoin.com.br</code><br>Tech Ltda · Celcoin</div>
+    <div class="pix-key-card"><strong>E-mail</strong><code>teste@pagamento.com.br</code><br>Fernanda Lima · Itaú</div>
+    <div class="pix-key-card"><strong>EVP (aleatória)</strong><code>550e8400-e29b-41d4-a716-446655440000</code><br>Douglas Nogueira de Melo · Itaú</div>
+  </div>
+</div>
+
+<!-- FLOWS -->
+<div class="cols">
+  <div class="card">
+    <h2>Fluxo — Pix por Chave</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Usuário: <em>"quero fazer um pix"</em></div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Agente pede chave e valor; botão PinPad aparece no chat</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><code>lookupPixKey</code> → DICT → exibe destinatário + banco</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">Usuário confirma + digita senha (PinPad)</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">5</div><div class="flow-text"><code>payPix</code> → banking-service → celcoin-mock → webhook PAID</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">6</div><div class="flow-text">Pix Tracker: SOLICITADO → AGUARDANDO → CONFIRMADO</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">7</div><div class="flow-text">Comprovante PDF disponível para download</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Fluxo — Pix por QR Code</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Usuário clica no ícone QR Code na barra de input</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Escolhe câmera ou galeria; <code>jsQR</code> extrai EMV string no browser</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-text">EMV enviado ao agente como mensagem de texto</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">4</div><div class="flow-text"><code>decodeQrCode</code> → banking-service → celcoin-mock <code>/pix/v1/emv/decode</code></div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">Agente exibe: destinatário, chave Pix, valor, tipo (STATIC/DYNAMIC)</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">6</div><div class="flow-text">Confirmação + senha → <code>payPix</code> → webhook → Tracker → PDF</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="card">
+    <h2>Fluxo — Mensagem de Voz</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Usuário segura o botão do microfone (push-to-hold)</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Browser grava via <code>MediaRecorder</code> (webm/opus)</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-text">Ao soltar: converte webm → WAV 16kHz PCM (Web Audio API)</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">WAV enviado para <code>POST /api/stt/transcribe</code></div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">Backend envia para <code>gpt-4o-audio-preview</code> → texto</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">6</div><div class="flow-text">Texto enviado diretamente ao agente como mensagem</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Fluxo — Imagem (Recibo / Nota)</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Usuário clica no ícone de imagem → câmera ou galeria</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Browser redimensiona (max 1024×1024, JPEG 85%) via canvas</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-text">Imagem base64 enviada junto com a mensagem ao agente</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">Spring AI encaminha para GPT-4o como <code>input_image</code></div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">GPT-4o identifica chave Pix, valor, destinatário na imagem</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">6</div><div class="flow-text">Agente apresenta dados e propõe pagamento com confirmação</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTS + STACK -->
+<div class="cols">
+  <div class="card">
+    <h2>Portas e Serviços</h2>
+    <table>
+      <tr><th>Serviço</th><th>Porta</th></tr>
+      <tr><td>payment-frontend (HTTP → HTTPS redirect)</td><td>3000</td></tr>
+      <tr><td>payment-frontend (HTTPS)</td><td>3443</td></tr>
+      <tr><td>Keycloak</td><td>8180</td></tr>
+      <tr><td>payment-agent</td><td>8080</td></tr>
+      <tr><td>payment-banking-service</td><td>8081</td></tr>
+      <tr><td>celcoin-mock</td><td>8082</td></tr>
+      <tr><td>payment-rag</td><td>8090</td></tr>
+      <tr><td>ChromaDB</td><td>8000</td></tr>
+      <tr><td>pgAdmin 4</td><td>5050</td></tr>
+      <tr><td>postgres-agent</td><td>5433</td></tr>
+      <tr><td>postgres-banking</td><td>5434</td></tr>
+      <tr><td>postgres-rag</td><td>5435</td></tr>
+      <tr><td>postgres-celcoin</td><td>5436</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Stack Tecnológico</h2>
+    <table>
+      <tr><th>Camada</th><th>Tecnologia</th></tr>
+      <tr><td>LLM / Vision</td><td>OpenAI GPT-4o</td></tr>
+      <tr><td>TTS</td><td>OpenAI gpt-4o-mini-tts</td></tr>
+      <tr><td>STT</td><td>OpenAI gpt-4o-audio-preview (WAV)</td></tr>
+      <tr><td>AI Framework</td><td>Spring AI 1.1.0-SNAPSHOT</td></tr>
+      <tr><td>Backend</td><td>Spring Boot 3.3.5 · Java 21</td></tr>
+      <tr><td>Frontend</td><td>React 18 · Vite · TypeScript</td></tr>
+      <tr><td>QR Code Reader</td><td>jsQR 1.4.0 (browser, sem backend)</td></tr>
+      <tr><td>PDF</td><td>OpenPDF (LibrePDF) — BACEN-compliant</td></tr>
+      <tr><td>Auth</td><td>Keycloak 26.1 · OAuth2 Authorization Code</td></tr>
+      <tr><td>TLS</td><td>nginx + certificado autoassinado (SAN: IP+localhost)</td></tr>
+      <tr><td>Vector DB</td><td>ChromaDB 1.0.0</td></tr>
+      <tr><td>Banco</td><td>PostgreSQL 16 (4 instâncias isoladas)</td></tr>
+      <tr><td>Container</td><td>Docker Compose</td></tr>
+      <tr><td>BaaS Mock</td><td>Celcoin API simulada (DICT, PIX, Boleto, EMV)</td></tr>
+    </table>
+
+    <br/>
+
+    <h2 style="margin-top:8px">Códigos de Erro do Mock</h2>
+    <table>
+      <tr><th>Código</th><th>Descrição</th></tr>
+      <tr><td>CBE001</td><td>clientCode duplicado/ausente</td></tr>
+      <tr><td>CBE003–008</td><td>CPF, telefone, email, nome, data nasc.</td></tr>
+      <tr><td>CBE009–014</td><td>Endereço (CEP, cidade, estado, bairro)</td></tr>
+      <tr><td>CBE015</td><td>CPF com dígitos verificadores inválidos</td></tr>
+      <tr><td>CBE016</td><td>Menor de 18 anos</td></tr>
+      <tr><td>CBE022</td><td>CPF já possui conta</td></tr>
+      <tr><td>PIE001</td><td>Chave PIX não encontrada no DICT</td></tr>
+      <tr><td>PIE003–010</td><td>Valor, pagador, limite diário</td></tr>
+      <tr><td>BLE001–003</td><td>Código de barras, vencimento, valor</td></tr>
+    </table>
+  </div>
+</div>
+
+<footer>Payment Agent System · Gerado automaticamente · <span id="dt2"></span></footer>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default', flowchart: { curve: 'basis' } });
+  const d = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  document.getElementById('dt').textContent = d;
+  document.getElementById('dt2').textContent = d;
+</script>
+</body>
+</html>

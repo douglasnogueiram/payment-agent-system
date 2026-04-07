@@ -1,6 +1,8 @@
 .env
 .env.*
 !.env.example
+!.env.prod.example
+!payment-frontend/.env.production
 **/target/
 **/*.jar
 .idea/

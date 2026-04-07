@@ -35,6 +35,23 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-celcoin:
+    image: postgres:16-alpine
+    container_name: payment-postgres-celcoin
+    environment:
+      POSTGRES_DB: celcoin_mock
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-celcoin-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   postgres-rag:
     image: postgres:16-alpine
     container_name: payment-postgres-rag
@@ -98,6 +115,7 @@ services:
     depends_on:
       - postgres-agent
       - postgres-banking
+      - postgres-celcoin
       - postgres-rag
 
   # ─────────────── Backend: Payment Agent ──────────────────────────────────
@@ -119,6 +137,7 @@ services:
       CHROMA_PORT: 8000
       BANKING_SERVICE_URL: http://payment-banking-service:8081
       KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_ISSUER_URI: http://localhost:8180
       KEYCLOAK_REALM: payment
     depends_on:
       postgres-agent:
@@ -137,13 +156,15 @@ services:
     ports:
       - "8082:8082"
     environment:
-      DB_HOST: postgres-banking
+      DB_HOST: postgres-celcoin
       DB_PORT: 5432
-      DB_NAME: payment_banking
+      DB_NAME: celcoin_mock
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       ONBOARDING_DELAY_MS: 3000
+      BANKING_WEBHOOK_URL: http://payment-banking-service:8081/api/webhooks/celcoin/pix
+      PIX_WEBHOOK_DELAY_MS: 3000
     depends_on:
-      postgres-banking:
+      postgres-celcoin:
         condition: service_healthy
 
   # ─────────────── Backend: Banking Service ────────────────────────────────
@@ -173,7 +194,7 @@ services:
   # Workaround for Spring AI 1.1.0-SNAPSHOT not auto-creating via initialize-schema=true.
   chroma-init:
     image: curlimages/curl:8.6.0
-    entrypoint: ["sh", "-c", "until curl -sf http://chromadb:8000/api/v1/heartbeat; do echo waiting; sleep 2; done && curl -sf -X POST http://chromadb:8000/api/v1/collections -H 'Content-Type: application/json' -d '{\"name\":\"PaymentKnowledge\",\"metadata\":{\"hnsw:space\":\"cosine\"}}' && echo done || echo exists"]
+    entrypoint: ["sh", "-c", "until curl -sf http://chromadb:8000/api/v2/heartbeat; do echo waiting; sleep 2; done && curl -sf -X POST http://chromadb:8000/api/v2/collections -H 'Content-Type: application/json' -d '{\"name\":\"PaymentKnowledge\",\"metadata\":{\"hnsw:space\":\"cosine\"}}' && echo done || echo exists"]
     depends_on:
       chromadb:
         condition: service_healthy
@@ -209,6 +230,7 @@ services:
     container_name: payment-frontend
     ports:
       - "3000:80"
+      - "3443:443"
     restart: unless-stopped
     depends_on:
       - payment-agent
@@ -217,5 +239,6 @@ services:
 volumes:
   postgres-agent-data:
   postgres-banking-data:
+  postgres-celcoin-data:
   postgres-rag-data:
   chroma-data:

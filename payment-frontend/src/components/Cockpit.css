@@ -1,0 +1,232 @@
+.cockpit {
+  display: flex;
+  height: 100%;
+  gap: 0;
+  font-family: 'Courier New', monospace;
+  background: #0d1117;
+  color: #c9d1d9;
+}
+
+/* ── Transaction list ──────────────────────────────────────────────── */
+.cockpit-list {
+  width: 340px;
+  min-width: 280px;
+  border-right: 1px solid #21262d;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cockpit-list-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #21262d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #161b22;
+}
+
+.cockpit-list-header h3 {
+  margin: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8b949e;
+}
+
+.cockpit-refresh-badge {
+  font-size: 0.68rem;
+  color: #3fb950;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
+
+.cockpit-list-body {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.cockpit-tx-row {
+  padding: 10px 16px;
+  border-bottom: 1px solid #161b22;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cockpit-tx-row:hover { background: #161b22; }
+.cockpit-tx-row.selected { background: #1c2128; border-left: 3px solid #c9a84c; }
+
+.cockpit-tx-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cockpit-tx-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f0f6fc;
+}
+
+.cockpit-tx-key {
+  font-size: 0.72rem;
+  color: #8b949e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.cockpit-tx-time {
+  font-size: 0.65rem;
+  color: #484f58;
+  margin-top: 1px;
+}
+
+/* ── Status badges ─────────────────────────────────────────────────── */
+.badge {
+  font-size: 0.62rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.badge--SUCCESS { background: #0d4a1a; color: #3fb950; border: 1px solid #238636; }
+.badge--FAILED  { background: #4a0d0d; color: #f85149; border: 1px solid #da3633; }
+.badge--PENDING {
+  background: #4a3d0d; color: #d29922; border: 1px solid #9e6a03;
+  animation: pulse 1.5s infinite;
+}
+
+/* ── Event timeline ────────────────────────────────────────────────── */
+.cockpit-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cockpit-detail-header {
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid #21262d;
+  background: #161b22;
+}
+
+.cockpit-detail-header h3 {
+  margin: 0 0 4px;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8b949e;
+}
+
+.cockpit-tx-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cockpit-tx-meta span {
+  font-size: 0.72rem;
+  color: #8b949e;
+}
+
+.cockpit-tx-meta strong {
+  color: #c9d1d9;
+}
+
+.cockpit-timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.cockpit-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #484f58;
+  font-size: 0.82rem;
+}
+
+/* ── Event rows ────────────────────────────────────────────────────── */
+.event-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.event-row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 28px;
+  width: 2px;
+  bottom: -8px;
+  background: #21262d;
+}
+
+.event-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.event-icon--DICT_LOOKUP      { background: #0d2a4a; color: #58a6ff; border: 1px solid #1f6feb; }
+.event-icon--DICT_FOUND       { background: #0d2a4a; color: #58a6ff; border: 1px solid #1f6feb; }
+.event-icon--BALANCE_DEBITED  { background: #4a1d1d; color: #ffa657; border: 1px solid #bd5b00; }
+.event-icon--CELCOIN_SUBMITTED{ background: #1a0d4a; color: #d2a8ff; border: 1px solid #8957e5; }
+.event-icon--AWAITING_WEBHOOK { background: #4a3d0d; color: #d29922; border: 1px solid #9e6a03; }
+.event-icon--WEBHOOK_RECEIVED { background: #1a4a1d; color: #3fb950; border: 1px solid #238636; }
+.event-icon--FINALIZED        { background: #0d4a1a; color: #3fb950; border: 1px solid #238636; }
+.event-icon--ERROR            { background: #4a0d0d; color: #f85149; border: 1px solid #da3633; }
+
+.event-body {
+  flex: 1;
+  padding-bottom: 16px;
+}
+
+.event-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.event-type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #8b949e;
+  letter-spacing: 0.06em;
+}
+
+.event-time {
+  font-size: 0.65rem;
+  color: #484f58;
+  margin-left: auto;
+}
+
+.event-message {
+  font-size: 0.78rem;
+  color: #c9d1d9;
+  line-height: 1.4;
+}
+
+.event-row--AWAITING_WEBHOOK .event-message {
+  color: #d29922;
+  animation: pulse 2s infinite;
+}

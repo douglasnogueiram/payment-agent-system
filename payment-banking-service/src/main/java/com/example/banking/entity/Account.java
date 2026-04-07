@@ -36,6 +36,10 @@ public class Account {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    /** Keycloak user subject (sub) — links the bank account to the authenticated user */
+    @Column(name = "keycloak_user_id", unique = true)
+    private String keycloakUserId;
+
     /** Celcoin onboarding reference — used for future integration calls */
     @Column(name = "celcoin_onboarding_id")
     private String celcoinOnboardingId;
@@ -60,6 +64,8 @@ public class Account {
     public void setBalance(BigDecimal balance) { this.balance = balance; }
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public String getKeycloakUserId() { return keycloakUserId; }
+    public void setKeycloakUserId(String keycloakUserId) { this.keycloakUserId = keycloakUserId; }
     public String getCelcoinOnboardingId() { return celcoinOnboardingId; }
     public void setCelcoinOnboardingId(String id) { this.celcoinOnboardingId = id; }
     public boolean isActive() { return active; }

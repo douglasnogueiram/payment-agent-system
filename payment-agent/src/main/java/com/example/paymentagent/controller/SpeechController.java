@@ -7,10 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/speech")
+@RequestMapping("/api/tts")
 public class SpeechController {
 
     private final VoiceConfigService voiceConfigService;
@@ -32,14 +33,13 @@ public class SpeechController {
     @PostMapping(produces = "audio/mpeg")
     public ResponseEntity<byte[]> synthesize(@RequestBody SpeechRequest req) {
         VoiceConfig cfg = voiceConfigService.get();
-        var body = Map.of(
-                "model", "gpt-4o-mini-tts-2025-03-20",
-                "input", req.text(),
-                "voice", cfg.getVoice(),
-                "speed", cfg.getSpeed(),
-                "response_format", cfg.getFormat(),
-                "instructions", cfg.getInstructions()
-        );
+        // tts-1 does not support the 'instructions' field (only gpt-4o-mini-tts does)
+        Map<String, Object> body = new HashMap<>();
+        body.put("model", "tts-1");
+        body.put("input", req.text());
+        body.put("voice", cfg.getVoice());
+        body.put("speed", cfg.getSpeed());
+        body.put("response_format", cfg.getFormat());
         byte[] audio = openAiClient.post()
                 .uri("/audio/speech")
                 .contentType(MediaType.APPLICATION_JSON)

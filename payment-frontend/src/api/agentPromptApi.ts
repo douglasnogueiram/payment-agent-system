@@ -1,3 +1,5 @@
+import { authHeaders } from '../auth/keycloak'
+
 export interface AgentPrompt {
   id?: number
   content: string
@@ -7,13 +9,13 @@ export interface AgentPrompt {
 }
 
 export async function fetchActivePrompt(): Promise<AgentPrompt> {
-  const r = await fetch('/api/agent-prompt/active')
+  const r = await fetch('/api/agent-prompt/active', { headers: authHeaders() })
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   return r.json()
 }
 
 export async function fetchPromptHistory(): Promise<AgentPrompt[]> {
-  const r = await fetch('/api/agent-prompt/history')
+  const r = await fetch('/api/agent-prompt/history', { headers: authHeaders() })
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   return r.json()
 }
@@ -21,7 +23,7 @@ export async function fetchPromptHistory(): Promise<AgentPrompt[]> {
 export async function savePrompt(content: string, description: string): Promise<AgentPrompt> {
   const r = await fetch('/api/agent-prompt', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ content, description }),
   })
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
@@ -29,7 +31,10 @@ export async function savePrompt(content: string, description: string): Promise<
 }
 
 export async function activatePromptVersion(id: number): Promise<AgentPrompt> {
-  const r = await fetch(`/api/agent-prompt/${id}/activate`, { method: 'POST' })
+  const r = await fetch(`/api/agent-prompt/${id}/activate`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   return r.json()
 }

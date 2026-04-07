@@ -1,3 +1,5 @@
+import { authHeaders } from '../auth/keycloak'
+
 // ─── Chat (SSE via fetch) ────────────────────────────────────────────────────
 
 export async function sendChatMessage(
@@ -6,13 +8,19 @@ export async function sendChatMessage(
   onToken: (token: string) => void,
   onDone: () => Promise<void>,
   onError: (msg: string) => void,
+  image?: { base64: string; mimeType: string },
 ): Promise<void> {
   let response: Response
   try {
     response = await fetch('/api/chat/message', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chatId, message }),
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({
+        chatId,
+        message,
+        imageBase64: image?.base64,
+        imageMimeType: image?.mimeType,
+      }),
     })
   } catch {
     onError('Falha na conexão com o servidor.')

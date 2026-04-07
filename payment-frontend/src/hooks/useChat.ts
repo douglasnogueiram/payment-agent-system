@@ -19,10 +19,19 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false)
 
   const sendMessage = useCallback(
-    async (text: string) => {
-      if (!text.trim() || isLoading) return
+    async (
+      text: string,
+      displayText?: string,
+      image?: { base64: string; mimeType: string; dataUrl: string },
+    ) => {
+      if ((!text.trim() && !image) || isLoading) return
 
-      const userMsg: Message = { id: uuid(), role: 'user', content: text }
+      const userMsg: Message = {
+        id: uuid(),
+        role: 'user',
+        content: displayText ?? text,
+        imageUrl: image?.dataUrl,
+      }
       const assistantId = uuid()
       const assistantMsg: Message = { id: assistantId, role: 'assistant', content: '' }
 
@@ -32,23 +41,19 @@ export function useChat() {
       await sendChatMessage(
         chatId,
         text,
-        // onToken
         (token) => {
           setMessages((prev) =>
             prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + token } : m)),
           )
         },
-        // onDone
-        async () => {
-          setIsLoading(false)
-        },
-        // onError
+        async () => { setIsLoading(false) },
         (msg) => {
           setMessages((prev) =>
             prev.map((m) => (m.id === assistantId ? { ...m, content: `Erro: ${msg}` } : m)),
           )
           setIsLoading(false)
         },
+        image ? { base64: image.base64, mimeType: image.mimeType } : undefined,
       )
     },
     [chatId, isLoading],

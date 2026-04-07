@@ -56,6 +56,21 @@ public class OnboardingController {
         if (req.address() == null) {
             return badRequest("CBE009", "address é obrigatório.");
         }
+        // Validate email format
+        if (!req.email().matches("^[\\w._%+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,}$")) {
+            return badRequest("CBE005", "email inválido.");
+        }
+        // Validate phone format (+55 + DDD + number)
+        if (!req.phoneNumber().matches("^\\+55\\d{10,11}$")) {
+            return badRequest("CBE004", "phoneNumber inválido. Use o formato +55XXXXXXXXXXX.");
+        }
+        // Validate address fields
+        try {
+            service.validateAddress(req.address());
+        } catch (IllegalArgumentException e) {
+            String[] parts = e.getMessage().split("\\|", 2);
+            return badRequest(parts[0], parts.length > 1 ? parts[1] : e.getMessage());
+        }
 
         try {
             OnboardingRecord record = new OnboardingRecord();

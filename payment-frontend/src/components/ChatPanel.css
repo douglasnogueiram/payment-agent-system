@@ -28,10 +28,46 @@
 /* ── Bubbles ───────────────────────────────────────────── */
 .bubble-wrap {
   display: flex;
+  align-items: flex-start;
 }
 
 .bubble-wrap--user { justify-content: flex-end; }
 .bubble-wrap--assistant { justify-content: flex-start; }
+
+/* Column wrapper so the PIN button sits below the bubble */
+.bubble-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* PIN trigger button — appears inline below the assistant message */
+.pin-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 2px solid #1d4ed8;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  animation: pin-btn-pop 0.2s ease-out;
+}
+
+.pin-trigger-btn:hover {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+@keyframes pin-btn-pop {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .bubble {
   max-width: 78%;
@@ -155,6 +191,221 @@
 
 .send-btn:hover:not(:disabled) { background: #254d7a; }
 .send-btn:disabled { background: #c0cfe0; cursor: not-allowed; }
+
+/* ── Mic recording bar ────────────────────────────────────── */
+.mic-recording-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.mic-recording-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+
+.mic-recording-bar--processing {
+  background: #fefce8;
+  border-top-color: #fde047;
+  color: #854d0e;
+}
+
+.mic-recording-dot--processing {
+  background: #eab308;
+}
+
+/* ── Mic error banner ─────────────────────────────────────── */
+.mic-error-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+.mic-error-bar button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #b91c1c;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 2px;
+}
+
+/* ── Mic button ───────────────────────────────────────────── */
+.mic-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s, color .15s, border-color .15s;
+}
+
+.mic-btn:hover:not(:disabled) { background: #f0f4fb; color: var(--navy); }
+.mic-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.mic-btn--recording {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #ef4444;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+
+.mic-btn--transcribing {
+  background: #fefce8;
+  border-color: #eab308;
+  color: #eab308;
+}
+
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); }
+  50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+
+/* ── Image attach button ──────────────────────────────────── */
+.attach-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+
+.attach-btn:hover:not(:disabled) { background: #f0f4fb; color: var(--navy); }
+.attach-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Image preview bar ────────────────────────────────────── */
+.image-preview-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px 0;
+  flex-shrink: 0;
+}
+
+.image-preview-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+}
+
+.image-preview-remove {
+  background: rgba(0,0,0,0.55);
+  border: none;
+  color: #fff;
+  font-size: 0.7rem;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: -6px;
+  margin-left: -20px;
+  flex-shrink: 0;
+}
+
+/* ── Image in user bubble ─────────────────────────────────── */
+.bubble-image {
+  display: block;
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  object-fit: cover;
+}
+
+/* ── PDF download card ────────────────────────────────────── */
+.pdf-download-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-top: 6px;
+  background: linear-gradient(135deg, #f0f4fb 0%, #e8effa 100%);
+  border: 1px solid #c0cfe0;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--navy);
+  transition: background 0.15s, box-shadow 0.15s;
+  max-width: 320px;
+}
+
+.pdf-download-card:hover {
+  background: linear-gradient(135deg, #e0eaf7 0%, #d4e3f5 100%);
+  box-shadow: 0 2px 8px rgba(26, 58, 92, 0.15);
+}
+
+.pdf-download-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pdf-download-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pdf-download-card__title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-download-card__subtitle {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.pdf-download-card__arrow {
+  margin-left: auto;
+  color: var(--navy);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
 
 /* =========================================================
    Mobile  (≤ 768px)

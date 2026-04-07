@@ -19,6 +19,7 @@ export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  imageUrl?: string   // data URL shown in the bubble when user sends an image
 }
 
 export type TransactionType = 'PIX' | 'BOLETO' | 'SALDO' | 'TRANSFERENCIA' | 'PAGAMENTO'

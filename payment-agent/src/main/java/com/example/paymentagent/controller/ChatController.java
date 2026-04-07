@@ -4,6 +4,8 @@ import com.example.paymentagent.agent.PaymentAssistant;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -20,26 +22,34 @@ public class ChatController {
         this.assistant = assistant;
     }
 
-    // Frontend sends { chatId, message } — chatId used as conversationId
-    public record ChatRequest(String chatId, String conversationId, String message) {
+    public record ChatRequest(String chatId, String conversationId, String message,
+                              String imageBase64, String imageMimeType) {
         public String resolvedConversationId() {
             return chatId != null ? chatId : (conversationId != null ? conversationId : "default");
         }
     }
 
-    /** POST /api/chat — SSE stream of { type, content } JSON events */
     @PostMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chat(@RequestBody ChatRequest req) {
-        return assistant.chat(req.resolvedConversationId(), req.message())
+    public Flux<String> chat(@RequestBody ChatRequest req, @AuthenticationPrincipal Jwt jwt) {
+        String keycloakUserId = jwt.getSubject();
+        String givenName  = jwt.getClaimAsString("given_name");
+        String familyName = jwt.getClaimAsString("family_name");
+        String name  = (givenName != null && familyName != null)
+            ? (givenName + " " + familyName).trim()
+            : jwt.getClaimAsString("name");
+        String email = jwt.getClaimAsString("email");
+
+        return assistant.chat(req.resolvedConversationId(), req.message(),
+                              req.imageBase64(), req.imageMimeType(),
+                              keycloakUserId, name, email)
                 .map(token -> toSseEvent("token", token))
                 .concatWith(Flux.just(toSseEvent("done", "")))
                 .onErrorResume(e -> Flux.just(toSseEvent("error", e.getMessage())));
     }
 
-    /** POST /api/chat/message — same, for frontend compatibility */
     @PostMapping(value = "/message", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chatMessage(@RequestBody ChatRequest req) {
-        return chat(req);
+    public Flux<String> chatMessage(@RequestBody ChatRequest req, @AuthenticationPrincipal Jwt jwt) {
+        return chat(req, jwt);
     }
 
     private String toSseEvent(String type, String content) {

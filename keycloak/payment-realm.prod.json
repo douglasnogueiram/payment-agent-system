@@ -1,0 +1,44 @@
+{
+  "realm": "payment",
+  "displayName": "Payment Agent",
+  "enabled": true,
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "sslRequired": "none",
+  "defaultSignatureAlgorithm": "RS256",
+
+  "clients": [
+    {
+      "clientId": "payment-frontend",
+      "name": "Payment Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": ["https://meuagentepix.com.br/*"],
+      "webOrigins": ["+"],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"],
+      "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"]
+    },
+    {
+      "clientId": "payment-agent",
+      "name": "Payment Agent Backend",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "payment-agent-secret",
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+
+  "roles": {
+    "realm": [
+      { "name": "USER", "description": "Standard bank customer" },
+      { "name": "ADMIN", "description": "Bank administrator" }
+    ]
+  },
+
+  "defaultRoles": ["USER"]
+}

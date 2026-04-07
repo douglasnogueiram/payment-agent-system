@@ -21,6 +21,39 @@
   font-weight: 400;
 }
 
+.header-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-username {
+  font-size: 0.85rem;
+  color: #ccd9e8;
+}
+
+.header-account {
+  color: var(--gold, #c9a84c);
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.header-logout-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.header-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 @media (max-width: 768px) {
   .header {
     padding: 8px 14px;

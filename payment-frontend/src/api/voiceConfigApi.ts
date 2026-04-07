@@ -1,7 +1,8 @@
 import { VoiceConfig } from '../types'
+import { authHeaders } from '../auth/keycloak'
 
 export async function fetchVoiceConfig(): Promise<VoiceConfig> {
-  const r = await fetch('/api/voice-config')
+  const r = await fetch('/api/voice-config', { headers: authHeaders() })
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   const data = await r.json()
   return {
@@ -15,7 +16,7 @@ export async function fetchVoiceConfig(): Promise<VoiceConfig> {
 export async function saveVoiceConfig(config: VoiceConfig): Promise<VoiceConfig> {
   const r = await fetch('/api/voice-config', {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(config),
   })
   if (!r.ok) throw new Error(`HTTP ${r.status}`)

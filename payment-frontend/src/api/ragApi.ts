@@ -1,3 +1,5 @@
+import { authHeaders } from '../auth/keycloak'
+
 // ─── RAG Loader API (/rag/* → payment-rag:8090/api/*) ────────────────────────
 
 export interface LoadResult {
@@ -41,6 +43,7 @@ export async function uploadDocument(name: string, file: File): Promise<LoadResu
 
   const r = await fetch(`/rag/documents/upload?name=${encodeURIComponent(name)}`, {
     method: 'POST',
+    headers: authHeaders(),
     body: form,
   })
 
@@ -53,27 +56,32 @@ export async function uploadDocument(name: string, file: File): Promise<LoadResu
 }
 
 export async function listDocuments(): Promise<DocumentRecord[]> {
-  const r = await fetch('/rag/documents')
+  const r = await fetch('/rag/documents', { headers: authHeaders() })
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   return r.json()
 }
 
 export async function getDocumentStatus(name: string): Promise<DocumentRecord | null> {
-  const r = await fetch(`/rag/documents/${encodeURIComponent(name)}`)
+  const r = await fetch(`/rag/documents/${encodeURIComponent(name)}`, { headers: authHeaders() })
   if (r.status === 404) return null
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   return r.json()
 }
 
 export async function getDocumentVersions(name: string): Promise<DocumentVersion[]> {
-  const r = await fetch(`/rag/documents/${encodeURIComponent(name)}/versions`)
+  const r = await fetch(`/rag/documents/${encodeURIComponent(name)}/versions`, {
+    headers: authHeaders(),
+  })
   if (r.status === 404) return []
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   return r.json()
 }
 
 export async function deleteDocument(name: string): Promise<number> {
-  const r = await fetch(`/rag/documents/${encodeURIComponent(name)}`, { method: 'DELETE' })
+  const r = await fetch(`/rag/documents/${encodeURIComponent(name)}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
   if (r.status === 404) return 0
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   const data = await r.json()
