@@ -124,6 +124,7 @@ services:
     volumes:
       # Only import the production realm file (not the dev one with test users and LAN URIs)
       - ./keycloak/payment-realm.prod.json:/opt/keycloak/data/import/payment-realm.json:ro
+      - ./keycloak/themes:/opt/keycloak/themes:ro
     depends_on:
       postgres-keycloak:
         condition: service_healthy

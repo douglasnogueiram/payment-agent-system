@@ -1,0 +1,576 @@
+/* ============================================================
+   Meu Agente Pix — Keycloak Login Theme
+   Design system: dark fintech / glassmorphism
+   ============================================================ */
+
+/* Google Fonts — Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ── CSS custom properties ── */
+:root {
+  --bg:              #080C14;
+  --surface:         #111827;
+  --surface-elevated:#1C2536;
+  --primary:         #00BDAE;
+  --primary-end:     #0094FF;
+  --gradient:        linear-gradient(135deg, #00BDAE 0%, #0094FF 100%);
+  --text:            #F0F4FF;
+  --text-secondary:  #8B9CB5;
+  --border:          rgba(255,255,255,0.07);
+  --border-bright:   rgba(0,189,174,0.25);
+  --success:         #10B981;
+  --error:           #EF4444;
+  --radius-card:     20px;
+  --radius-input:    10px;
+  --radius-pill:     999px;
+  --shadow-card:     0 8px 40px rgba(0,0,0,0.55), 0 0 0 1px var(--border), 0 0 32px rgba(0,189,174,0.06);
+}
+
+/* ── Reset & base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+.login-pf body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,189,174,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 80% 110%, rgba(0,148,255,0.08) 0%, transparent 60%);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Page layout ── */
+.login-pf-page,
+#kc-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+
+/* Keycloak wraps everything in .container-fluid > .row > col */
+.login-pf-page .container-fluid {
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.login-pf-page .row {
+  margin: 0;
+}
+
+/* ── Brand header ── */
+#kc-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0 28px;
+  text-align: center;
+}
+
+/* Hide default Keycloak realm text that Keycloak injects */
+#kc-header-wrapper {
+  font-size: 0;           /* hide original text */
+  color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Pix "X" logo rendered as an SVG background on a pseudo-element */
+#kc-header-wrapper::before {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background:
+    var(--gradient),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='white'%3E%3Cpath d='M22.93 9.07a4.55 4.55 0 0 0-6.43 0L14.86 10.7l-1.64-1.63a4.55 4.55 0 0 0-6.43 6.43L8.43 17l-1.64 1.64a4.55 4.55 0 0 0 6.43 6.43l1.64-1.64 1.64 1.64a4.55 4.55 0 0 0 6.43-6.43L21.29 17l1.64-1.64a4.55 4.55 0 0 0 0-6.29zm-1.72 8.58 1.05 1.05a2.27 2.27 0 0 1-3.21 3.21L17.93 20.8a1.14 1.14 0 0 0-1.61 0L14.14 23a2.27 2.27 0 0 1-3.21-3.21l2.22-2.22a1.14 1.14 0 0 0 0-1.61l-2.22-2.22A2.27 2.27 0 0 1 14.14 10.5l2.18 2.18a1.14 1.14 0 0 0 1.61 0l2.18-2.18a2.27 2.27 0 0 1 3.21 3.21l-2.11 2.11a1.14 1.14 0 0 0 0 1.83z'/%3E%3C/svg%3E") center/56% no-repeat;
+  flex-shrink: 0;
+  box-shadow: 0 4px 24px rgba(0,189,174,0.35);
+}
+
+/* Brand title */
+#kc-header-wrapper::after {
+  content: 'Meu Agente Pix';
+  font-size: 0;           /* reset — we write the two lines below with separate blocks */
+}
+
+/* Override with real visible title via a separate element trick:
+   Keycloak renders <div id="kc-header"><div id="kc-header-wrapper">REALM</div></div>
+   We use the ::after pseudo for the title text and set font-size back */
+#kc-header-wrapper::after {
+  content: 'Meu Agente Pix';
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtitle injected via #kc-header::after */
+#kc-header::after {
+  content: 'Assistente de Pagamentos com IA';
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Card ── */
+.card-pf,
+.login-pf-page .card-pf {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-card) !important;
+  padding: 36px 36px 28px !important;
+  margin: 0 !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Keycloak v26 wraps content in kc-login-info / kc-content-wrapper */
+#kc-content-wrapper {
+  padding: 0;
+}
+
+/* ── Form title inside card ── */
+#kc-page-title,
+.login-pf-page h1,
+.login-pf-page .kc-header {
+  display: none; /* we rely on #kc-header instead */
+}
+
+/* ── Labels ── */
+label,
+.pf-v5-c-form__label,
+.control-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary) !important;
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Inputs ── */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+.form-control {
+  width: 100% !important;
+  background: var(--surface-elevated) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border-bright) !important;
+  border-radius: var(--radius-input) !important;
+  padding: 14px 16px !important;
+  font-size: 15px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400;
+  outline: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+  box-shadow: none !important;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+.form-control:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(0,189,174,0.15) !important;
+}
+
+input[type="text"]::placeholder,
+input[type="password"]::placeholder,
+input[type="email"]::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Autofill override */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-elevated) inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  border-color: var(--border-bright) !important;
+}
+
+/* Form group spacing */
+.form-group,
+.pf-v5-c-form__group {
+  margin-bottom: 20px;
+}
+
+/* ── Password visibility toggle (Keycloak 26) ── */
+.kc-password-input-group {
+  position: relative;
+}
+
+.pf-v5-c-button.pf-m-plain {
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.pf-v5-c-button.pf-m-plain:hover {
+  color: var(--primary) !important;
+}
+
+/* ── Primary button ── */
+.btn-primary,
+input[type="submit"],
+button[type="submit"],
+.pf-v5-c-button.pf-m-primary {
+  display: block !important;
+  width: 100% !important;
+  background: var(--gradient) !important;
+  border: none !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 14px 24px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  font-family: 'Inter', sans-serif !important;
+  color: #ffffff !important;
+  cursor: pointer !important;
+  letter-spacing: 0.02em;
+  text-align: center;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(0,189,174,0.3) !important;
+  margin-top: 8px;
+  text-decoration: none !important;
+  -webkit-appearance: none;
+}
+
+.btn-primary:hover,
+input[type="submit"]:hover,
+button[type="submit"]:hover,
+.pf-v5-c-button.pf-m-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(0,189,174,0.4) !important;
+}
+
+.btn-primary:active,
+input[type="submit"]:active,
+button[type="submit"]:active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.btn-primary:disabled,
+input[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Secondary / link buttons ── */
+.btn-default,
+.pf-v5-c-button.pf-m-link,
+.pf-v5-c-button.pf-m-secondary {
+  background: transparent !important;
+  border: 1px solid var(--border-bright) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--primary) !important;
+  padding: 10px 20px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.btn-default:hover,
+.pf-v5-c-button.pf-m-link:hover {
+  background: rgba(0,189,174,0.08) !important;
+  box-shadow: 0 0 0 1px var(--border-bright) !important;
+}
+
+/* ── Anchor / link ── */
+a,
+a:visited {
+  color: var(--primary) !important;
+  text-decoration: none !important;
+  transition: color 0.2s, opacity 0.2s;
+}
+
+a:hover {
+  color: #00d4c4 !important;
+  text-decoration: underline !important;
+}
+
+/* ── Remember me & checkbox ── */
+#rememberMe {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.checkbox,
+#kc-form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.checkbox label {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary) !important;
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
+  margin: 0;
+}
+
+#kc-form-options .checkbox {
+  margin-bottom: 0;
+}
+
+/* ── Forgot password link ── */
+#kc-form-options a {
+  font-size: 13px;
+}
+
+/* ── Social / identity provider buttons ── */
+.zocial,
+.social-link,
+.pf-v5-l-grid__item .btn {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--text) !important;
+  font-size: 14px !important;
+  margin-bottom: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.zocial:hover,
+.social-link:hover {
+  border-color: var(--border-bright) !important;
+  background: rgba(0,189,174,0.06) !important;
+}
+
+/* ── Divider "or" ── */
+.login-pf-page hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 24px 0;
+}
+
+/* ── Alerts ── */
+.alert,
+.pf-v5-c-alert {
+  border-radius: var(--radius-input) !important;
+  border: 1px solid !important;
+  padding: 12px 16px !important;
+  margin-bottom: 20px !important;
+  font-size: 13px !important;
+  font-weight: 500;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.alert-error,
+.pf-v5-c-alert.pf-m-danger {
+  background: rgba(239,68,68,0.1) !important;
+  border-color: rgba(239,68,68,0.35) !important;
+  color: #FCA5A5 !important;
+}
+
+.alert-success,
+.pf-v5-c-alert.pf-m-success {
+  background: rgba(16,185,129,0.1) !important;
+  border-color: rgba(16,185,129,0.35) !important;
+  color: #6EE7B7 !important;
+}
+
+.alert-warning,
+.pf-v5-c-alert.pf-m-warning {
+  background: rgba(245,158,11,0.1) !important;
+  border-color: rgba(245,158,11,0.35) !important;
+  color: #FCD34D !important;
+}
+
+.alert-info,
+.pf-v5-c-alert.pf-m-info {
+  background: rgba(0,148,255,0.1) !important;
+  border-color: rgba(0,148,255,0.3) !important;
+  color: #93C5FD !important;
+}
+
+/* Hide default Keycloak alert icons clutter */
+.alert .pficon,
+.pf-v5-c-alert__icon {
+  color: inherit !important;
+  flex-shrink: 0;
+}
+
+/* ── Instruction text ── */
+#kc-info,
+#kc-info-message,
+.instruction {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* ── Registration link area ── */
+#kc-registration,
+#kc-registration-container {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+#kc-registration span,
+#kc-registration-container span {
+  color: var(--text-secondary);
+}
+
+#kc-registration a,
+#kc-registration-container a {
+  font-weight: 600;
+}
+
+/* ── OTP / code input ── */
+#otp {
+  letter-spacing: 0.3em;
+  text-align: center;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+}
+
+/* ── Utility: hide useless Keycloak elements ── */
+#kc-logo,
+.login-pf-page .login-pf-header img {
+  display: none;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-elevated);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-bright);
+}
+
+/* ── PatternFly 5 overrides (Keycloak 26 uses PF5) ── */
+.pf-v5-c-form__group-label .pf-v5-c-form__label-text {
+  color: var(--text-secondary) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pf-v5-c-form__helper-text {
+  color: var(--text-secondary) !important;
+  font-size: 12px;
+}
+
+.pf-v5-c-form-control {
+  --pf-v5-c-form-control--BackgroundColor: var(--surface-elevated) !important;
+  --pf-v5-c-form-control--Color: var(--text) !important;
+  --pf-v5-c-form-control--BorderColor: var(--border-bright) !important;
+  border-radius: var(--radius-input) !important;
+}
+
+.pf-v5-c-form-control:focus-within {
+  --pf-v5-c-form-control--BorderColor: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(0,189,174,0.15) !important;
+}
+
+/* Remove PF5 top-bar background */
+.pf-v5-c-page,
+.pf-v5-c-page__main,
+.pf-v5-c-page__main-section {
+  background: transparent !important;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 520px) {
+  .card-pf,
+  .login-pf-page .card-pf {
+    padding: 28px 20px 24px !important;
+    border-radius: 16px !important;
+  }
+
+  #kc-header {
+    padding: 32px 0 20px;
+  }
+
+  #kc-header-wrapper::before {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+  }
+
+  #kc-header-wrapper::after {
+    font-size: 24px;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  .form-control {
+    font-size: 16px !important; /* prevent iOS zoom */
+  }
+}
+
+@media (max-width: 360px) {
+  .card-pf,
+  .login-pf-page .card-pf {
+    padding: 24px 16px 20px !important;
+  }
+}

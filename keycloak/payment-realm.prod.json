@@ -2,6 +2,7 @@
   "realm": "payment",
   "displayName": "Payment Agent",
   "enabled": true,
+  "loginTheme": "meu-agente-pix",
   "registrationAllowed": true,
   "loginWithEmailAllowed": true,
   "resetPasswordAllowed": true,
