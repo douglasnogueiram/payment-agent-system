@@ -25,7 +25,7 @@ import java.util.UUID;
 @Service
 public class PdfReceiptService {
 
-    private static final String BANK_NAME    = "Payment Bank S.A.";
+    private static final String BANK_NAME    = "Meu Agente Pix";
     private static final String BANK_CNPJ    = "00.000.000/0001-91";
     private static final String BANK_ISPB    = "00000000";
 
@@ -33,33 +33,35 @@ public class PdfReceiptService {
     private static final DateTimeFormatter DATE_FMT     = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm:ss");
 
-    // Colors
-    private static final Color NAVY      = new Color(0x1A, 0x3A, 0x5C);
-    private static final Color NAVY_LITE = new Color(0x2A, 0x5A, 0x8C);
-    private static final Color GREEN     = new Color(0x15, 0x80, 0x3D);
-    private static final Color GREEN_BG  = new Color(0xDC, 0xFC, 0xE7);
-    private static final Color RED       = new Color(0xB9, 0x1C, 0x1C);
-    private static final Color RED_BG    = new Color(0xFE, 0xE2, 0xE2);
-    private static final Color GRAY_BG   = new Color(0xF5, 0xF7, 0xFA);
-    private static final Color GRAY_LINE = new Color(0xDD, 0xE0, 0xE5);
-    private static final Color TEXT      = new Color(0x1A, 0x1A, 0x2E);
-    private static final Color MUTED     = new Color(0x60, 0x70, 0x80);
-    private static final Color WHITE     = Color.WHITE;
+    // ── Brand palette ─────────────────────────────────────────────────────────
+    private static final Color PIX_TEAL    = new Color(0x00, 0xBD, 0xAE); // #00BDAE
+    private static final Color PIX_DARK    = new Color(0x00, 0x94, 0x88); // #009488
+    private static final Color HEADER_BG   = new Color(0x11, 0x18, 0x27); // #111827
+    private static final Color HEADER_R    = new Color(0x1C, 0x25, 0x36); // #1C2536
+    private static final Color SUCCESS     = new Color(0x10, 0xB9, 0x81); // #10B981
+    private static final Color SUCCESS_BG  = new Color(0xD1, 0xFA, 0xE5);
+    private static final Color ERROR       = new Color(0xEF, 0x44, 0x44); // #EF4444
+    private static final Color ERROR_BG    = new Color(0xFE, 0xE2, 0xE2);
+    private static final Color GRAY_BG     = new Color(0xF5, 0xF7, 0xFA);
+    private static final Color GRAY_LINE   = new Color(0xDD, 0xE0, 0xE5);
+    private static final Color TEAL_LIGHT  = new Color(0xE6, 0xFB, 0xF9);
+    private static final Color TEXT        = new Color(0x1A, 0x1A, 0x2E);
+    private static final Color MUTED       = new Color(0x60, 0x70, 0x80);
+    private static final Color WHITE       = Color.WHITE;
 
     // Fonts
     private static final Font F_TITLE    = FontFactory.getFont(FontFactory.HELVETICA_BOLD,  18, TEXT);
-    private static final Font F_AMOUNT   = FontFactory.getFont(FontFactory.HELVETICA_BOLD,  24, TEXT);
-    private static final Font F_SECTION  = FontFactory.getFont(FontFactory.HELVETICA_BOLD,   9, NAVY);
+    private static final Font F_AMOUNT   = FontFactory.getFont(FontFactory.HELVETICA_BOLD,  26, PIX_DARK);
+    private static final Font F_SECTION  = FontFactory.getFont(FontFactory.HELVETICA_BOLD,   9, PIX_DARK);
     private static final Font F_LABEL    = FontFactory.getFont(FontFactory.HELVETICA,         8, MUTED);
     private static final Font F_VALUE    = FontFactory.getFont(FontFactory.HELVETICA_BOLD,    9, TEXT);
     private static final Font F_MONO     = FontFactory.getFont(FontFactory.COURIER,            7, MUTED);
     private static final Font F_FOOTER   = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 6.5f, MUTED);
-    private static final Font F_WHITE_SM = FontFactory.getFont(FontFactory.HELVETICA,          8, new Color(0xBB, 0xCC, 0xDD));
+    private static final Font F_WHITE_SM = FontFactory.getFont(FontFactory.HELVETICA,          8, new Color(0x8B, 0x9C, 0xB5));
     private static final Font F_WHITE_BD = FontFactory.getFont(FontFactory.HELVETICA_BOLD,    11, WHITE);
 
     public byte[] generate(Account payerAccount, Transaction tx) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            // A4, narrow margins for a receipt-style layout
             Document doc = new Document(PageSize.A4, 60, 60, 40, 50);
             PdfWriter writer = PdfWriter.getInstance(doc, baos);
             addPageEvent(writer);
@@ -100,14 +102,16 @@ public class PdfReceiptService {
         PdfPTable header = new PdfPTable(2);
         header.setWidthPercentage(100);
         header.setWidths(new float[]{3f, 2f});
-        header.setSpacingAfter(12);
+        header.setSpacingAfter(0);
 
         Phrase left = new Phrase();
-        left.add(new Chunk("Pix  ·  " + BANK_NAME + "\n",
-                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, WHITE)));
+        left.add(new Chunk(BANK_NAME + "\n",
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, PIX_TEAL)));
+        left.add(new Chunk("Assistente de Pagamentos com IA\n",
+                FontFactory.getFont(FontFactory.HELVETICA, 7, new Color(0x8B, 0x9C, 0xB5))));
         left.add(new Chunk("CNPJ: " + BANK_CNPJ + "   ISPB: " + BANK_ISPB, F_WHITE_SM));
         PdfPCell lCell = new PdfPCell(left);
-        lCell.setBackgroundColor(NAVY);
+        lCell.setBackgroundColor(HEADER_BG);
         lCell.setPadding(14);
         lCell.setBorder(Rectangle.NO_BORDER);
         header.addCell(lCell);
@@ -116,13 +120,24 @@ public class PdfReceiptService {
         right.add(new Chunk("Emitido em\n", F_WHITE_SM));
         right.add(new Chunk(DATETIME_FMT.format(now), F_WHITE_BD));
         PdfPCell rCell = new PdfPCell(right);
-        rCell.setBackgroundColor(NAVY_LITE);
+        rCell.setBackgroundColor(HEADER_R);
         rCell.setPadding(14);
         rCell.setBorder(Rectangle.NO_BORDER);
         rCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         header.addCell(rCell);
 
         doc.add(header);
+
+        // Teal accent stripe
+        PdfPTable accent = new PdfPTable(1);
+        accent.setWidthPercentage(100);
+        PdfPCell accentCell = new PdfPCell(new Phrase(""));
+        accentCell.setBackgroundColor(PIX_TEAL);
+        accentCell.setFixedHeight(3f);
+        accentCell.setBorder(Rectangle.NO_BORDER);
+        accent.addCell(accentCell);
+        accent.setSpacingAfter(12);
+        doc.add(accent);
 
         Paragraph title = new Paragraph("COMPROVANTE DE TRANSFERÊNCIA PIX", F_TITLE);
         title.setAlignment(Element.ALIGN_CENTER);
@@ -138,15 +153,16 @@ public class PdfReceiptService {
         badge.setHorizontalAlignment(Element.ALIGN_CENTER);
         badge.setSpacingAfter(16);
 
-        String label   = success ? "✓  Pagamento confirmado" : "✕  Pagamento não concluído";
-        Color  bg      = success ? GREEN_BG : RED_BG;
-        Color  fg      = success ? GREEN    : RED;
+        String label = success ? "✓  Pagamento confirmado" : "✕  Pagamento não concluído";
+        Color  bg    = success ? SUCCESS_BG : ERROR_BG;
+        Color  fg    = success ? SUCCESS    : ERROR;
+        Color  border= success ? new Color(0x6E, 0xE7, 0xB7) : new Color(0xFC, 0xA5, 0xA5);
 
         PdfPCell cell = new PdfPCell(new Phrase(label,
                 FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, fg)));
         cell.setBackgroundColor(bg);
         cell.setPadding(10);
-        cell.setBorderColor(success ? new Color(0xBB, 0xF7, 0xD0) : new Color(0xFE, 0xCA, 0xCA));
+        cell.setBorderColor(border);
         cell.setBorderWidth(1f);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         badge.addCell(cell);
@@ -185,9 +201,9 @@ public class PdfReceiptService {
         table.setWidths(new float[]{1f, 1f});
         table.setSpacingAfter(4);
 
-        addRow(table, "Nome",        acc.getName());
-        addRow(table, "CPF",         maskCpf(acc.getCpf()));
-        addRow(table, "Instituição", BANK_NAME + " (ISPB " + BANK_ISPB + ")");
+        addRow(table, "Nome",            acc.getName());
+        addRow(table, "CPF",             maskCpf(acc.getCpf()));
+        addRow(table, "Instituição",     BANK_NAME + " (ISPB " + BANK_ISPB + ")");
         addRow(table, "Agência / Conta", acc.getAgency() + " / " + acc.getAccountNumber());
 
         doc.add(table);
@@ -202,8 +218,8 @@ public class PdfReceiptService {
         table.setSpacingAfter(4);
 
         String recipientName = tx.getRecipientName() != null ? tx.getRecipientName() : "—";
-        addRow(table, "Nome",       recipientName);
-        addRow(table, "Chave Pix",  tx.getReference() != null ? tx.getReference() : "—");
+        addRow(table, "Nome",        recipientName);
+        addRow(table, "Chave Pix",   tx.getReference() != null ? tx.getReference() : "—");
         addRow(table, "Instituição", ispbFromE2E(tx.getEndToEndId()));
 
         doc.add(table);
@@ -218,10 +234,10 @@ public class PdfReceiptService {
         table.setWidths(new float[]{1f, 1f});
         table.setSpacingAfter(4);
 
-        addRow(table, "Data e hora",          DATETIME_FMT.format(txTime));
-        addRow(table, "Tipo de operação",      "Pix — Transferência a Crédito");
-        addRow(table, "Status",                statusPtBr(tx.getStatus()));
-        addRow(table, "ID da transação",       "#" + tx.getId());
+        addRow(table, "Data e hora",     DATETIME_FMT.format(txTime));
+        addRow(table, "Tipo de operação","Pix — Transferência a Crédito");
+        addRow(table, "Status",          statusPtBr(tx.getStatus()));
+        addRow(table, "ID da transação", "#" + tx.getId());
 
         doc.add(table);
     }
@@ -240,9 +256,9 @@ public class PdfReceiptService {
         phrase.add(new Chunk(tx.getEndToEndId(), F_MONO));
 
         PdfPCell cell = new PdfPCell(phrase);
-        cell.setBackgroundColor(GRAY_BG);
+        cell.setBackgroundColor(TEAL_LIGHT);
         cell.setPadding(10);
-        cell.setBorderColor(GRAY_LINE);
+        cell.setBorderColor(new Color(0xA7, 0xF3, 0xD0));
         cell.setBorderWidth(0.5f);
         box.addCell(cell);
 
@@ -253,13 +269,14 @@ public class PdfReceiptService {
 
     private void addLegalFooter(Document doc, ZonedDateTime now, String authCode)
             throws DocumentException {
-        doc.add(new LineSeparator(0.5f, 100, GRAY_LINE, Element.ALIGN_CENTER, -2));
+        doc.add(new LineSeparator(1f, 100, PIX_TEAL, Element.ALIGN_CENTER, -2));
         doc.add(Chunk.NEWLINE);
 
         Paragraph footer = new Paragraph();
         footer.setAlignment(Element.ALIGN_CENTER);
         footer.add(new Chunk(
-                "Código de autenticidade: " + formatCode(authCode) + "\n", F_FOOTER));
+                "Código de autenticidade: " + formatCode(authCode) + "\n",
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7, PIX_DARK)));
         footer.add(new Chunk(
                 "Documento gerado eletronicamente em " + DATETIME_FMT.format(now) + " (horário de Brasília).\n",
                 F_FOOTER));
@@ -291,16 +308,14 @@ public class PdfReceiptService {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void addRow(PdfPTable table, String label, String value) {
-        Phrase labelPhrase = new Phrase(label, F_LABEL);
-        PdfPCell lCell = new PdfPCell(labelPhrase);
+        PdfPCell lCell = new PdfPCell(new Phrase(label, F_LABEL));
         lCell.setPadding(8);
         lCell.setBorderColor(GRAY_LINE);
         lCell.setBorderWidth(0.5f);
         lCell.setBackgroundColor(GRAY_BG);
         table.addCell(lCell);
 
-        Phrase valuePhrase = new Phrase(value != null ? value : "—", F_VALUE);
-        PdfPCell vCell = new PdfPCell(valuePhrase);
+        PdfPCell vCell = new PdfPCell(new Phrase(value != null ? value : "—", F_VALUE));
         vCell.setPadding(8);
         vCell.setBorderColor(GRAY_LINE);
         vCell.setBorderWidth(0.5f);
@@ -327,14 +342,9 @@ public class PdfReceiptService {
         };
     }
 
-    /**
-     * Extracts institution ISPB from EndToEndId.
-     * Format: E{ISPB:8}{YYYYMMDDHHmmss}{11chars}
-     */
     private String ispbFromE2E(String e2e) {
         if (e2e != null && e2e.startsWith("E") && e2e.length() >= 9) {
             String ispb = e2e.substring(1, 9);
-            // If recipient ISPB == our ISPB, it's internal
             if (BANK_ISPB.equals(ispb)) {
                 return BANK_NAME + " (ISPB " + ispb + ")";
             }

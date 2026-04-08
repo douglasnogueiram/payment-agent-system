@@ -29,7 +29,7 @@ import java.util.UUID;
 @Service
 public class PdfStatementService {
 
-    private static final String BANK_NAME    = "Payment Bank S.A.";
+    private static final String BANK_NAME    = "Meu Agente Pix";
     private static final String BANK_CNPJ    = "00.000.000/0001-91";
     private static final String BANK_ISPB    = "00000000";
     private static final String BANK_ADDRESS = "Av. Paulista, 1000 — Bela Vista — São Paulo/SP — CEP 01310-100";
@@ -38,16 +38,20 @@ public class PdfStatementService {
     private static final DateTimeFormatter DATE_FMT     = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    // Color palette
-    private static final Color NAVY      = new Color(0x1A, 0x3A, 0x5C);
-    private static final Color NAVY_LIGHT = new Color(0x2A, 0x5A, 0x8C);
-    private static final Color GRAY_BG   = new Color(0xF5, 0xF7, 0xFA);
-    private static final Color GRAY_LINE = new Color(0xDD, 0xE0, 0xE5);
-    private static final Color GREEN     = new Color(0x1A, 0x7A, 0x40);
-    private static final Color RED       = new Color(0xB0, 0x20, 0x20);
-    private static final Color WHITE     = Color.WHITE;
-    private static final Color TEXT      = new Color(0x1A, 0x1A, 0x2E);
-    private static final Color MUTED     = new Color(0x60, 0x70, 0x80);
+    // ── Brand palette ─────────────────────────────────────────────────────────
+    private static final Color PIX_TEAL    = new Color(0x00, 0xBD, 0xAE); // #00BDAE
+    private static final Color PIX_BLUE    = new Color(0x00, 0x94, 0xFF); // #0094FF
+    private static final Color PIX_DARK    = new Color(0x00, 0x94, 0x88); // #009488 (darker teal)
+    private static final Color HEADER_BG   = new Color(0x11, 0x18, 0x27); // #111827 surface
+    private static final Color HEADER_R    = new Color(0x1C, 0x25, 0x36); // #1C2536 surface-2
+    private static final Color GRAY_BG     = new Color(0xF5, 0xF7, 0xFA);
+    private static final Color GRAY_LINE   = new Color(0xDD, 0xE0, 0xE5);
+    private static final Color SUCCESS     = new Color(0x10, 0xB9, 0x81); // #10B981
+    private static final Color ERROR       = new Color(0xEF, 0x44, 0x44); // #EF4444
+    private static final Color WHITE       = Color.WHITE;
+    private static final Color TEXT        = new Color(0x1A, 0x1A, 0x2E);
+    private static final Color MUTED       = new Color(0x60, 0x70, 0x80);
+    private static final Color TEAL_LIGHT  = new Color(0xE6, 0xFB, 0xF9); // very light teal bg
 
     public byte[] generate(Account account, List<Transaction> transactions, int days) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -85,36 +89,48 @@ public class PdfStatementService {
         header.setWidths(new float[]{3f, 2f});
         header.setSpacingAfter(4);
 
-        // Bank identity cell
+        // Left: brand identity
         Phrase bankPhrase = new Phrase();
         bankPhrase.add(new Chunk(BANK_NAME + "\n",
-                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, WHITE)));
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, PIX_TEAL)));
+        bankPhrase.add(new Chunk("Assistente de Pagamentos com IA\n",
+                FontFactory.getFont(FontFactory.HELVETICA, 8, new Color(0x8B, 0x9C, 0xB5))));
         bankPhrase.add(new Chunk("CNPJ: " + BANK_CNPJ + "   |   ISPB: " + BANK_ISPB + "\n",
-                FontFactory.getFont(FontFactory.HELVETICA, 8, new Color(0xBB, 0xCC, 0xDD))));
+                FontFactory.getFont(FontFactory.HELVETICA, 7, new Color(0x8B, 0x9C, 0xB5))));
         bankPhrase.add(new Chunk(BANK_ADDRESS,
-                FontFactory.getFont(FontFactory.HELVETICA, 7, new Color(0xBB, 0xCC, 0xDD))));
+                FontFactory.getFont(FontFactory.HELVETICA, 7, new Color(0x8B, 0x9C, 0xB5))));
 
         PdfPCell bankCell = new PdfPCell(bankPhrase);
-        bankCell.setBackgroundColor(NAVY);
+        bankCell.setBackgroundColor(HEADER_BG);
         bankCell.setPadding(12);
         bankCell.setBorder(Rectangle.NO_BORDER);
         header.addCell(bankCell);
 
-        // Date/time cell
+        // Right: timestamp
         Phrase datePhrase = new Phrase();
         datePhrase.add(new Chunk("Gerado em\n",
-                FontFactory.getFont(FontFactory.HELVETICA, 8, new Color(0xBB, 0xCC, 0xDD))));
+                FontFactory.getFont(FontFactory.HELVETICA, 8, new Color(0x8B, 0x9C, 0xB5))));
         datePhrase.add(new Chunk(DATETIME_FMT.format(now),
                 FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, WHITE)));
 
         PdfPCell dateCell = new PdfPCell(datePhrase);
-        dateCell.setBackgroundColor(NAVY_LIGHT);
+        dateCell.setBackgroundColor(HEADER_R);
         dateCell.setPadding(12);
         dateCell.setBorder(Rectangle.NO_BORDER);
         dateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         header.addCell(dateCell);
 
         doc.add(header);
+
+        // Teal accent line
+        PdfPTable accent = new PdfPTable(1);
+        accent.setWidthPercentage(100);
+        PdfPCell accentCell = new PdfPCell(new Phrase(""));
+        accentCell.setBackgroundColor(PIX_TEAL);
+        accentCell.setFixedHeight(3f);
+        accentCell.setBorder(Rectangle.NO_BORDER);
+        accent.addCell(accentCell);
+        doc.add(accent);
     }
 
     // ── Document title ────────────────────────────────────────────────────────
@@ -126,14 +142,14 @@ public class PdfStatementService {
 
         PdfPCell cell = new PdfPCell(new Phrase(
                 "EXTRATO DE CONTA CORRENTE",
-                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, NAVY)));
-        cell.setBackgroundColor(GRAY_BG);
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, PIX_DARK)));
+        cell.setBackgroundColor(TEAL_LIGHT);
         cell.setPadding(8);
         cell.setPaddingLeft(12);
-        cell.setBorderColor(NAVY);
+        cell.setBorderColor(PIX_TEAL);
         cell.setBorderWidthBottom(2);
         cell.setBorderWidthTop(0);
-        cell.setBorderWidthLeft(0);
+        cell.setBorderWidthLeft(4);
         cell.setBorderWidthRight(0);
         title.addCell(cell);
 
@@ -149,14 +165,14 @@ public class PdfStatementService {
         info.setWidths(new float[]{2.5f, 2.5f, 1.5f, 1.5f});
         info.setSpacingAfter(4);
 
-        addInfoCell(info, "Titular",       account.getName());
-        addInfoCell(info, "CPF",           maskCpf(account.getCpf()));
-        addInfoCell(info, "Agência",       account.getAgency());
-        addInfoCell(info, "Conta",         account.getAccountNumber());
-        addInfoCell(info, "E-mail",        account.getEmail());
-        addInfoCell(info, "Instituição",   BANK_NAME);
+        addInfoCell(info, "Titular",        account.getName());
+        addInfoCell(info, "CPF",            maskCpf(account.getCpf()));
+        addInfoCell(info, "Agência",        account.getAgency());
+        addInfoCell(info, "Conta",          account.getAccountNumber());
+        addInfoCell(info, "E-mail",         account.getEmail());
+        addInfoCell(info, "Instituição",    BANK_NAME);
         addInfoCell(info, "Período início", DATE_FMT.format(since));
-        addInfoCell(info, "Período fim",   DATE_FMT.format(now));
+        addInfoCell(info, "Período fim",    DATE_FMT.format(now));
 
         doc.add(info);
     }
@@ -198,10 +214,10 @@ public class PdfStatementService {
         summary.setWidthPercentage(100);
         summary.setSpacingAfter(4);
 
-        addSummaryCell(summary, "Saldo Inicial", fmtBrl(initialBalance), TEXT,     GRAY_BG);
-        addSummaryCell(summary, "Total Créditos", fmtBrl(totalCredits),  GREEN,    new Color(0xF0, 0xFB, 0xF4));
-        addSummaryCell(summary, "Total Débitos",  fmtBrl(totalDebits),   RED,      new Color(0xFB, 0xF0, 0xF0));
-        addSummaryCell(summary, "Saldo Final",    fmtBrl(currentBalance), NAVY,    new Color(0xF0, 0xF4, 0xFB));
+        addSummaryCell(summary, "Saldo Inicial",  fmtBrl(initialBalance), TEXT,    GRAY_BG);
+        addSummaryCell(summary, "Total Créditos", fmtBrl(totalCredits),   SUCCESS, new Color(0xD1, 0xFA, 0xE5));
+        addSummaryCell(summary, "Total Débitos",  fmtBrl(totalDebits),    ERROR,   new Color(0xFE, 0xE2, 0xE2));
+        addSummaryCell(summary, "Saldo Final",    fmtBrl(currentBalance), PIX_DARK, TEAL_LIGHT);
 
         doc.add(summary);
     }
@@ -226,12 +242,10 @@ public class PdfStatementService {
     private void addTransactionsTable(Document doc, List<Transaction> transactions)
             throws DocumentException {
 
-        // Section title
         doc.add(new Paragraph("Lançamentos",
-                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, NAVY)));
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, PIX_DARK)));
         doc.add(new Chunk(Chunk.NEWLINE));
 
-        // Column headers
         PdfPTable table = new PdfPTable(5);
         table.setWidthPercentage(100);
         table.setWidths(new float[]{1.5f, 2.5f, 3.5f, 1.5f, 1.8f});
@@ -255,19 +269,19 @@ public class PdfStatementService {
         } else {
             boolean alt = false;
             for (Transaction tx : transactions) {
-                Color rowBg = alt ? GRAY_BG : WHITE;
+                Color rowBg = alt ? TEAL_LIGHT : WHITE;
                 boolean isCredit = tx.getType() == Transaction.TransactionType.ACCOUNT_CREDIT;
-                Color amtColor = isCredit ? GREEN : RED;
+                Color amtColor  = isCredit ? SUCCESS : ERROR;
                 String amtPrefix = isCredit ? "+" : "-";
                 String statusSuffix = tx.getStatus() == Transaction.TransactionStatus.FAILED ? " [FALHA]"
                         : tx.getStatus() == Transaction.TransactionStatus.PENDING ? " [PENDENTE]" : "";
 
                 ZonedDateTime dt = tx.getCreatedAt().atZone(BR_ZONE);
 
-                addTxCell(table, DATE_FMT.format(dt),           TEXT,     rowBg);
-                addTxCell(table, typePtBr(tx.getType()),         MUTED,    rowBg);
+                addTxCell(table, DATE_FMT.format(dt),                                     TEXT,     rowBg);
+                addTxCell(table, typePtBr(tx.getType()),                                   MUTED,    rowBg);
                 addTxCellDescription(table, tx, rowBg);
-                addTxCell(table, amtPrefix + fmtBrl(tx.getAmount()) + statusSuffix, amtColor, rowBg);
+                addTxCell(table, amtPrefix + fmtBrl(tx.getAmount()) + statusSuffix,        amtColor, rowBg);
                 addTxCell(table, tx.getBalanceAfter() != null ? fmtBrl(tx.getBalanceAfter()) : "—",
                          TEXT, rowBg);
 
@@ -281,7 +295,7 @@ public class PdfStatementService {
     private void addTableHeader(PdfPTable table, String text) {
         PdfPCell cell = new PdfPCell(new Phrase(text,
                 FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, WHITE)));
-        cell.setBackgroundColor(NAVY);
+        cell.setBackgroundColor(PIX_TEAL);
         cell.setPadding(7);
         cell.setBorder(Rectangle.NO_BORDER);
         table.addCell(cell);
@@ -331,7 +345,7 @@ public class PdfStatementService {
 
     private void addFooter(Document doc, ZonedDateTime now, String authCode)
             throws DocumentException {
-        doc.add(new LineSeparator(0.5f, 100, GRAY_LINE, Element.ALIGN_CENTER, -2));
+        doc.add(new LineSeparator(1f, 100, PIX_TEAL, Element.ALIGN_CENTER, -2));
         doc.add(Chunk.NEWLINE);
 
         Paragraph footer = new Paragraph();
@@ -342,7 +356,7 @@ public class PdfStatementService {
                 FontFactory.getFont(FontFactory.HELVETICA, 7, MUTED)));
         footer.add(new Chunk(
                 "Código de autenticidade: " + formatAuthCode(authCode) + "\n",
-                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7, MUTED)));
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7, PIX_DARK)));
         footer.add(new Chunk(
                 "As informações de CPF foram parcialmente ocultadas em conformidade com a LGPD (Lei 13.709/2018).\n",
                 FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 6.5f, MUTED)));
@@ -377,7 +391,6 @@ public class PdfStatementService {
         if (cpf == null || cpf.length() < 11) return "***.***.***-**";
         String digits = cpf.replaceAll("\\D", "");
         if (digits.length() < 11) return "***.***.***-**";
-        // Show only middle 3 digits: ***.456.789-**
         return "***." + digits.substring(3, 6) + "." + digits.substring(6, 9) + "-**";
     }
 
@@ -388,14 +401,13 @@ public class PdfStatementService {
 
     private String typePtBr(Transaction.TransactionType type) {
         return switch (type) {
-            case PIX_OUT      -> "PIX Enviado";
-            case BOLETO_OUT   -> "Boleto";
+            case PIX_OUT        -> "PIX Enviado";
+            case BOLETO_OUT     -> "Boleto";
             case ACCOUNT_CREDIT -> "Crédito";
         };
     }
 
     private String formatAuthCode(String raw) {
-        // Format as XXXX-XXXX-XXXX-XXXX
         return raw.substring(0, 4)  + "-" + raw.substring(4, 8)  + "-" +
                raw.substring(8, 12) + "-" + raw.substring(12, 16);
     }
