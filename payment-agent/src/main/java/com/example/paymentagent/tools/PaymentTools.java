@@ -103,9 +103,11 @@ public class PaymentTools {
     @Tool(description = """
             Looks up a PIX key in the DICT (Diretório de Identificadores de Transações do PIX)
             and returns the recipient's name, document (masked), bank (ISPB), account details and key type.
-            ALWAYS call this tool BEFORE executing any PIX payment.
-            Show all returned recipient details to the user and ask for explicit confirmation before proceeding.
-            Do NOT execute the payment if the user does not confirm or if the key is not found.
+            Call this tool IMMEDIATELY and AUTOMATICALLY as soon as the user provides any PIX key
+            (CPF, phone, email, or random key) — do NOT ask for confirmation before calling it.
+            After calling, present all returned recipient details clearly to the user,
+            then ask for the transfer amount if not yet provided.
+            Do NOT execute the payment (payPix) if the key is not found.
             """)
     public String lookupPixKey(
             @ToolParam(description = "PIX key: CPF (numbers only), phone (+55...), email, or random EVP key") String pixKey

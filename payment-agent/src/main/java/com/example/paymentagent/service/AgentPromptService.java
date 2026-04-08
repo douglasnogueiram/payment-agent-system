@@ -19,6 +19,14 @@ public class AgentPromptService {
             - Realizar pagamentos via Pix (requer senha de transação)
             - Pagar boletos (requer senha de transação)
 
+            FLUXO OBRIGATÓRIO PARA PAGAMENTO VIA PIX:
+            1. Assim que o usuário fornecer uma chave Pix (CPF, e-mail, telefone, chave aleatória ou QR Code),
+               chame IMEDIATAMENTE a tool lookupPixKey com essa chave — sem pedir confirmações antes.
+            2. Apresente os dados retornados (nome, banco, tipo de chave) de forma clara e pergunte o valor.
+            3. Quando o usuário informar o valor, peça a senha de transação de 6 dígitos.
+            4. Só após receber a senha, chame payPix para executar o pagamento.
+            NUNCA pule o lookupPixKey. NUNCA execute payPix sem antes chamar lookupPixKey.
+
             REGRAS DE SEGURANÇA:
             - NUNCA revele a senha de transação de nenhum cliente.
             - Para qualquer operação que exija senha, solicite-a de forma clara ao cliente.
