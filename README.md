@@ -241,6 +241,164 @@ New registrations automatically receive the `USER` role. ADMIN must be assigned 
 
 ---
 
+## Sequence Diagrams
+
+### 1. Authentication (OAuth2 Authorization Code)
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend (React)
+    participant KC as Keycloak 26.1
+    participant PA as payment-agent
+
+    U->>FE: Acessa meuagentepix.com.br
+    FE->>KC: GET /kc/realms/payment/.../auth (redirect + state)
+    KC-->>U: Exibe tela de login
+    U->>KC: Informa usuário + senha
+    KC-->>FE: Redirect com ?code=...&state=...
+    FE->>KC: POST .../token (authorization_code)
+    KC-->>FE: access_token (JWT RS256) + refresh_token
+    FE->>FE: Lê realm_access.roles do JWT
+    Note over FE: ADMIN → todas as abas\nUSER → só aba Chat
+    FE->>PA: GET /api/me/account (Bearer JWT)
+    PA-->>FE: { accountNumber, agency, name } ou 404
+```
+
+---
+
+### 2. Pix Payment (end-to-end)
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend
+    participant PA as payment-agent (Spring AI)
+    participant GPT as GPT-4o
+    participant PBS as payment-banking-service
+    participant CM as celcoin-mock
+    participant PEP as PaymentEventPanel
+
+    U->>FE: "Quero pagar R$100 para joao@email.com"
+    FE->>PA: POST /api/chat (SSE) + Bearer JWT
+    PA->>GPT: mensagem + tools disponíveis
+    GPT-->>PA: tool_call: lookupPixKey("joao@email.com")
+    PA->>PBS: GET /api/payments/pix/lookup/joao@email.com
+    PBS->>CM: GET /pix/v2/dict/entry/joao@email.com
+    CM-->>PBS: { name: "João Silva", bank, account }
+    PBS-->>PA: dados do destinatário
+    GPT-->>PA: (stream) "Encontrei João Silva. Confirma R$100?"
+    PA-->>FE: SSE tokens
+    U->>FE: "Confirmo" → PIN via PinPad
+    FE->>PA: POST /api/chat (PIN)
+    GPT-->>PA: tool_call: payPix(pin, pixKey, 100.0)
+    PA->>PBS: POST /api/payments/pix
+    PBS->>PBS: Debita saldo + cria Transaction(PENDING)
+    PBS->>CM: POST /pix/v2/transfer (assíncrono)
+    CM-->>PBS: { transactionId, endToEndId }
+    GPT-->>PA: (stream) "Pix enviado! Aguardando confirmação..."
+    PA-->>FE: SSE tokens
+    CM->>PBS: POST /api/payments/webhook (COMPLETED)
+    PBS->>PBS: Transaction → SUCCESS + eventos registrados
+    loop Polling (1s PENDING / 3s outros)
+        PEP->>PA: GET /api/transactions?accountNumber=XXX
+        PEP->>PEP: Detecta PENDING → SUCCESS
+        PEP->>PBS: GET /banking/api/admin/transactions/{id}/receipt/pdf
+        PBS-->>PEP: { downloadUrl }
+        PEP->>FE: injectMessage("✅ Pix confirmado! [Baixar Comprovante PDF](...)")
+    end
+```
+
+---
+
+### 3. Voice Input/Output (STT + TTS)
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend
+    participant PA as payment-agent
+    participant OAI as OpenAI
+
+    U->>FE: Pressiona microfone (push-to-hold)
+    FE->>FE: MediaRecorder → WebM/Opus Blob
+    FE->>FE: toWav() — AudioContext → PCM 16-bit mono 16kHz
+    FE->>PA: POST /api/stt/transcribe (multipart WAV)
+    PA->>OAI: POST /audio/transcriptions (whisper-1, pt)
+    OAI-->>PA: { text: "Quero pagar R$100..." }
+    PA-->>FE: { text }
+    FE->>FE: sendMessage(text)
+
+    Note over FE,OAI: Saída de voz
+    U->>FE: Clica botão de áudio da resposta
+    FE->>PA: POST /api/tts { text, voice, speed, format }
+    PA->>OAI: POST /audio/speech (tts-1, nova, mp3)
+    OAI-->>PA: audio/mpeg bytes
+    PA-->>FE: blob
+    FE->>FE: Audio.play()
+```
+
+---
+
+### 4. RAG Knowledge Base Query
+
+```mermaid
+sequenceDiagram
+    participant FE as Frontend (Admin)
+    participant PRAG as payment-rag
+    participant GPT as OpenAI Embeddings
+    participant CHROMA as ChromaDB
+    participant PA as payment-agent
+    actor U as Usuário
+
+    Note over FE,CHROMA: Indexação (Admin)
+    FE->>PRAG: POST /rag/documents/upload?name=payment-policy
+    PRAG->>GPT: POST /embeddings (chunks do documento)
+    GPT-->>PRAG: vetores de embedding
+    PRAG->>CHROMA: POST /api/v2/collections/PaymentKnowledge/points
+
+    Note over U,CHROMA: Consulta
+    U->>PA: "Qual o limite do Pix noturno?"
+    PA->>GPT: embedding da pergunta
+    GPT-->>PA: vetor
+    PA->>CHROMA: query top-K chunks mais próximos
+    CHROMA-->>PA: chunks da política de pagamentos
+    PA->>GPT: pergunta + chunks como contexto
+    GPT-->>PA: "O limite é R$1.000,00 por transação..."
+    PA-->>U: SSE stream
+```
+
+---
+
+### 5. Role-Based Access Control (RBAC)
+
+```mermaid
+sequenceDiagram
+    actor A as Admin
+    actor U as Usuário (novo)
+    participant KC as Keycloak
+    participant FE as Frontend
+    participant PA as payment-agent
+
+    Note over U,KC: Novo cadastro
+    U->>KC: Cria conta
+    KC->>KC: defaultRoles: ["USER"] aplicado
+    KC-->>U: JWT com roles: ["USER"]
+    U->>FE: hasRole("ADMIN") → false → só aba Chat
+
+    Note over A,PA: Admin — acesso total
+    A->>KC: Login
+    KC-->>A: JWT com roles: ["USER", "ADMIN"]
+    A->>FE: hasRole("ADMIN") → true → todas as abas
+
+    Note over U,PA: Proteção no backend
+    U->>PA: PUT /api/voice-config (role USER)
+    PA->>PA: JwtAuthenticationConverter → ROLE_USER
+    PA-->>U: 403 Forbidden
+```
+
+---
+
 ## Tech Stack
 
 **Backend**
