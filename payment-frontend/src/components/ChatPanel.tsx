@@ -7,7 +7,7 @@ import { synthesizeSpeech, transcribeAudio } from '../api/speechApi'
 import PinPad from './PinPad'
 import './ChatPanel.css'
 
-const PDF_URL_RE = /\/banking\/api\/statements\/pdf\//
+const PDF_URL_RE = /\/banking\/api\/(statements\/pdf|admin\/receipt\/pdf)\//
 
 function PdfDownloadCard({ href, children }: { href: string; children: React.ReactNode }) {
   return (

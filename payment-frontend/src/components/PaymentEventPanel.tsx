@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchMyAccount, fetchUserTransactions, fetchTransactionEvents, fetchReceiptUrl, TxRow, TxEvent } from '../api/cockpitApi'
 import './PaymentEventPanel.css'
 
@@ -67,11 +67,16 @@ function fmtTime(iso: string) {
   })
 }
 
+interface Props {
+  onPaymentComplete?: (txId: number) => void
+}
+
 // ── Component ───────────────────────────────────────────────────────
-export default function PaymentEventPanel() {
+export default function PaymentEventPanel({ onPaymentComplete }: Props) {
   const [accountNumber, setAccountNumber] = useState<string | null | undefined>(undefined) // undefined=loading, null=no account
   const [transactions, setTransactions] = useState<TxRow[]>([])
   const [trackedId, setTrackedId] = useState<number | null>(null)
+  const prevStatusRef = useRef<string | null>(null)
   const [events, setEvents] = useState<TxEvent[]>([])
   const [collapsed, setCollapsed] = useState(false)
   const [receiptLoading, setReceiptLoading] = useState(false)
@@ -93,7 +98,8 @@ export default function PaymentEventPanel() {
         const txs = await fetchUserTransactions(accountNumber!)
         if (!alive) return
         setTransactions(txs)
-        if (txs.length > 0) setTrackedId(prev => prev ?? txs[0].id)
+        // Always track the most recent transaction
+        if (txs.length > 0) setTrackedId(txs[0].id)
       } catch { /* ignore */ }
     }
     refresh()
@@ -120,6 +126,16 @@ export default function PaymentEventPanel() {
     }
     return () => { alive = false }
   }, [trackedId, transactions])
+
+  // ── Detect PENDING → SUCCESS transition and inject receipt in chat ─
+  useEffect(() => {
+    const tx = transactions.find(t => t.id === trackedId)
+    const status = tx?.status ?? null
+    if (prevStatusRef.current === 'PENDING' && status === 'SUCCESS' && trackedId) {
+      onPaymentComplete?.(trackedId)
+    }
+    prevStatusRef.current = status
+  }, [transactions, trackedId, onPaymentComplete])
 
   // ── Auto-expand when a payment is processing ─────────────────────
   useEffect(() => {

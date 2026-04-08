@@ -59,5 +59,9 @@ export function useChat() {
     [chatId, isLoading],
   )
 
-  return { messages, isLoading, sendMessage }
+  const injectMessage = useCallback((content: string) => {
+    setMessages(prev => [...prev, { id: uuid(), role: 'assistant', content }])
+  }, [])
+
+  return { messages, isLoading, sendMessage, injectMessage }
 }

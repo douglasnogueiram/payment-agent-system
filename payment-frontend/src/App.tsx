@@ -11,6 +11,7 @@ import { useChat } from './hooks/useChat'
 import { VoiceConfig, DEFAULT_VOICE_CONFIG } from './types'
 import { fetchVoiceConfig } from './api/voiceConfigApi'
 import { hasRole } from './auth/keycloak'
+import { fetchReceiptUrl } from './api/cockpitApi'
 import './App.css'
 
 type Tab = 'chat' | 'transactions' | 'cockpit' | 'rag' | 'voice' | 'agent'
@@ -19,7 +20,14 @@ export default function App() {
   const isAdmin = hasRole('ADMIN')
   const [activeTab, setActiveTab] = useState<Tab>('chat')
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig>(DEFAULT_VOICE_CONFIG)
-  const { messages, isLoading, sendMessage } = useChat()
+  const { messages, isLoading, sendMessage, injectMessage } = useChat()
+
+  async function handlePaymentComplete(txId: number) {
+    try {
+      const url = await fetchReceiptUrl(txId)
+      injectMessage(`✅ Pix confirmado! Seu comprovante está pronto:\n\n[Baixar Comprovante PDF](${url})`)
+    } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     fetchVoiceConfig().then(setVoiceConfig).catch(() => {})
@@ -86,7 +94,7 @@ export default function App() {
               onSend={sendMessage}
               voiceConfig={voiceConfig}
             />
-            <PaymentEventPanel />
+            <PaymentEventPanel onPaymentComplete={handlePaymentComplete} />
           </div>
         )}
         {isAdmin && activeTab === 'transactions' && <TransactionsPanel />}
