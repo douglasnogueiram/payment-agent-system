@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Payment Agent System — Diagramas de Sequência</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      padding: 40px;
+    }
+    h1 { font-size: 1.8rem; color: #1a1a2e; margin-bottom: 4px; }
+    .subtitle { font-size: 0.95rem; color: #666; margin-bottom: 32px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-bottom: 32px;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      color: #4A2D70;
+      margin-bottom: 6px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #f0e8ff;
+    }
+    .card .desc {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .mermaid { width: 100%; overflow-x: auto; }
+    footer { text-align: center; font-size: 0.78rem; color: #aaa; margin-top: 16px; }
+    @media print {
+      body { background: white; padding: 20px; }
+      .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Payment Agent System</h1>
+<p class="subtitle">Diagramas de Sequência — <span id="dt"></span></p>
+
+<!-- 1. LOGIN -->
+<div class="card">
+  <h2>1. Autenticação do Usuário (OAuth2 Authorization Code)</h2>
+  <p class="desc">Fluxo de login via Keycloak com token JWT. Usuários recebem a role USER por padrão; ADMIN deve ser atribuído manualmente.</p>
+  <div class="mermaid">
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend (React)
+    participant KC as Keycloak 26.1
+    participant PA as payment-agent
+
+    U->>FE: Acessa meuagentepix.com.br
+    FE->>KC: GET /kc/realms/payment/protocol/openid-connect/auth<br/>(redirect com state)
+    KC-->>U: Exibe tela de login
+    U->>KC: Informa usuário + senha
+    KC-->>FE: Redirect com ?code=...&state=...
+    FE->>KC: POST /kc/realms/payment/protocol/openid-connect/token<br/>(authorization_code)
+    KC-->>FE: access_token (JWT RS256) + refresh_token
+    FE->>FE: Armazena token em localStorage<br/>Lê realm_access.roles do JWT
+    Note over FE: ADMIN → todas as abas<br/>USER → só aba Chat
+
+    FE->>PA: GET /api/me/account<br/>Authorization: Bearer JWT
+    PA->>PA: Valida JWT via JWKS do Keycloak
+    PA-->>FE: { accountNumber, agency, name } ou 404
+  </div>
+</div>
+
+<!-- 2. PIX COMPLETO -->
+<div class="card">
+  <h2>2. Pagamento Pix via Chat (fluxo completo)</h2>
+  <p class="desc">Da mensagem do usuário até o comprovante automático no chat. O agente orquestra DICT lookup, confirmação, débito e acompanhamento em tempo real.</p>
+  <div class="mermaid">
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend (React)
+    participant PA as payment-agent<br/>(Spring AI)
+    participant GPT as GPT-4o<br/>(OpenAI)
+    participant PBS as payment-banking-service
+    participant CM as celcoin-mock<br/>(Pix API)
+    participant PEP as PaymentEventPanel
+
+    U->>FE: "Quero pagar R$100 para joao@email.com"
+    FE->>PA: POST /api/chat (SSE stream) + Bearer JWT
+    PA->>GPT: mensagem + system prompt + tools disponíveis
+    GPT-->>PA: tool_call: lookupPixKey("joao@email.com")
+
+    PA->>PBS: GET /api/payments/pix/lookup/joao@email.com
+    PBS->>CM: GET /pix/v2/dict/entry/joao@email.com
+    CM-->>PBS: { name: "João Silva", bank: "...", account: "..." }
+    PBS-->>PA: dados do destinatário
+    PA->>GPT: resultado do lookupPixKey
+    GPT-->>PA: (stream) "Encontrei João Silva. Confirma o envio de R$100?"
+    PA-->>FE: SSE tokens → mensagem renderizada
+    U->>FE: "Confirmo"
+    FE->>PA: POST /api/chat
+    PA->>GPT: confirmação do usuário
+    GPT-->>PA: "Informe sua senha de transação de 6 dígitos"
+    PA-->>FE: SSE → PinPad trigger detectado
+    FE->>U: Exibe botão "Inserir senha de transação"
+    U->>FE: Clica → digita PIN no PinPad
+    FE->>PA: POST /api/chat (••••••)
+    PA->>GPT: senha recebida
+    GPT-->>PA: tool_call: payPix(transactionPassword, pixKey, 100.0)
+
+    PA->>PBS: POST /api/payments/pix
+    PBS->>PBS: Debita saldo + cria Transaction(PENDING)<br/>Registra evento BALANCE_DEBITED
+    PBS->>CM: POST /pix/v2/transfer (assíncrono)
+    CM-->>PBS: { transactionId, endToEndId, status: PROCESSING }
+    PBS->>PBS: Registra evento CELCOIN_SUBMITTED
+    PBS-->>PA: { success, transactionId, endToEndId }
+    PA->>GPT: resultado do payPix
+    GPT-->>PA: (stream) "Pix de R$100 enviado! Aguardando confirmação do banco..."
+    PA-->>FE: SSE tokens
+
+    Note over PBS,CM: Webhook assíncrono (celcoin-mock → banking-service)
+    CM->>PBS: POST /api/payments/webhook<br/>{ status: COMPLETED, endToEndId }
+    PBS->>PBS: Atualiza Transaction → SUCCESS<br/>Registra evento WEBHOOK_RECEIVED + FINALIZED
+
+    loop Polling a cada 1s (PENDING) ou 3s (outros)
+        PEP->>PA: GET /api/transactions?accountNumber=XXX
+        PA-->>PEP: lista de transações
+        PEP->>PEP: Detecta PENDING → SUCCESS
+        PEP->>PBS: GET /banking/api/admin/transactions/{id}/receipt/pdf
+        PBS-->>PEP: { downloadUrl, expiresInSeconds: 600 }
+        PEP->>FE: injectMessage("✅ Pix confirmado! [Baixar Comprovante PDF](...)")
+    end
+  </div>
+</div>
+
+<!-- 3. STT + TTS -->
+<div class="card">
+  <h2>3. Entrada e Saída de Voz</h2>
+  <p class="desc">Gravação de áudio no browser, transcrição via Whisper e síntese de resposta via TTS-1.</p>
+  <div class="mermaid">
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend
+    participant WA as Web Audio API<br/>(browser)
+    participant PA as payment-agent
+    participant OAI as OpenAI
+
+    U->>FE: Pressiona e segura botão de microfone
+    FE->>WA: navigator.mediaDevices.getUserMedia()
+    WA-->>FE: MediaStream
+    FE->>FE: MediaRecorder.start() — grava WebM/Opus
+
+    U->>FE: Solta o botão
+    FE->>FE: MediaRecorder.stop() → Blob
+    FE->>FE: toWav(blob) — decodifica via AudioContext<br/>mono 16kHz PCM 16-bit → WAV header
+
+    FE->>PA: POST /api/stt/transcribe (multipart: audio.wav)<br/>Authorization: Bearer JWT
+    PA->>OAI: POST /audio/transcriptions<br/>model=whisper-1, language=pt
+    OAI-->>PA: { text: "Quero pagar R$100..." }
+    PA-->>FE: { text: "Quero pagar R$100..." }
+    FE->>FE: Envia texto para o chat (sendMessage)
+
+    Note over FE,OAI: Saída de voz (TTS)
+    U->>FE: Clica no botão de áudio da resposta
+    FE->>FE: stripMarkdown(text)
+    FE->>PA: POST /api/tts<br/>{ text, voice, speed, responseFormat }<br/>Authorization: Bearer JWT
+    PA->>OAI: POST /audio/speech<br/>model=tts-1, voice=nova, format=mp3
+    OAI-->>PA: audio/mpeg bytes
+    PA-->>FE: audio/mpeg blob
+    FE->>FE: URL.createObjectURL → Audio.play()
+  </div>
+</div>
+
+<!-- 4. QR CODE -->
+<div class="card">
+  <h2>4. Pagamento via QR Code Pix</h2>
+  <p class="desc">Leitura do QR Code no browser via jsQR, decodificação EMV pelo agente e pagamento confirmado pelo usuário.</p>
+  <div class="mermaid">
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend (jsQR)
+    participant PA as payment-agent
+    participant GPT as GPT-4o
+    participant PBS as payment-banking-service
+    participant CM as celcoin-mock
+
+    U->>FE: Clica ícone QR Code → seleciona imagem
+    FE->>FE: jsQR decodifica imagem → string EMV
+    FE->>PA: POST /api/chat<br/>"Leia este QR Code Pix: 000201..."
+    PA->>GPT: mensagem + tools
+    GPT-->>PA: tool_call: decodeQrCode("000201...")
+    PA->>PBS: POST /api/payments/pix/qrcode/decode<br/>{ emv: "000201..." }
+    PBS->>CM: POST /pix/v2/emv/decode
+    CM-->>PBS: { pixKey, amount, recipientName, type: STATIC|DYNAMIC }
+    PBS-->>PA: dados decodificados
+    PA->>GPT: resultado
+    GPT-->>PA: (stream) "QR Code de R$50,00 para João Silva (CPF: ***). Confirma?"
+    PA-->>FE: SSE tokens
+    U->>FE: "Confirmo" + senha PIN
+    Note over FE,CM: Segue fluxo normal do payPix (diagrama 2)
+  </div>
+</div>
+
+<!-- 5. RAG -->
+<div class="card">
+  <h2>5. Consulta à Base de Conhecimento (RAG)</h2>
+  <p class="desc">Pergunta do usuário é respondida com contexto extraído de documentos indexados no ChromaDB.</p>
+  <div class="mermaid">
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend
+    participant PA as payment-agent<br/>(Spring AI)
+    participant GPT as GPT-4o
+    participant CHROMA as ChromaDB
+    participant PRAG as payment-rag
+
+    Note over PRAG,CHROMA: Indexação (feita pelo Admin via aba Base de Conhecimento)
+    FE->>PRAG: POST /rag/documents/upload?name=payment-policy<br/>(multipart file)
+    PRAG->>PRAG: Divide documento em chunks
+    PRAG->>GPT: POST /embeddings (text-embedding-ada-002)
+    GPT-->>PRAG: vetores de embedding
+    PRAG->>CHROMA: POST /api/v2/collections/PaymentKnowledge/points<br/>(chunks + embeddings)
+    CHROMA-->>PRAG: stored
+
+    Note over U,CHROMA: Consulta em tempo real
+    U->>FE: "Qual o limite do Pix noturno?"
+    FE->>PA: POST /api/chat + Bearer JWT
+    PA->>PA: QuestionAnswerAdvisor intercepta a mensagem
+    PA->>GPT: POST /embeddings (pergunta do usuário)
+    GPT-->>PA: embedding da pergunta
+    PA->>CHROMA: GET /api/v2/collections/PaymentKnowledge/query<br/>(top-K chunks mais próximos)
+    CHROMA-->>PA: chunks relevantes da política
+    PA->>GPT: pergunta + chunks como contexto no prompt
+    GPT-->>PA: (stream) "O limite do Pix noturno é R$1.000,00 por transação..."
+    PA-->>FE: SSE tokens
+  </div>
+</div>
+
+<!-- 6. ABERTURA DE CONTA -->
+<div class="card">
+  <h2>6. Abertura de Conta Corrente via Chat</h2>
+  <p class="desc">O agente coleta os dados necessários e abre a conta vinculando ao ID do Keycloak do usuário.</p>
+  <div class="mermaid">
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend
+    participant PA as payment-agent<br/>(Spring AI + ToolContext)
+    participant GPT as GPT-4o
+    participant PBS as payment-banking-service
+    participant CM as celcoin-mock
+
+    U->>FE: "Quero abrir uma conta"
+    FE->>PA: POST /api/chat + Bearer JWT
+    PA->>PA: Extrai do JWT: sub (keycloakUserId), name, email
+    PA->>PA: Popula ToolContext com { name, email, keycloakUserId }
+    PA->>GPT: mensagem + system prompt + tool openAccount
+    GPT-->>PA: (stream) "Preciso do seu CPF e de uma senha de 6 dígitos"
+    PA-->>FE: SSE tokens
+    U->>FE: Informa CPF, telefone, nome da mãe, data de nascimento
+    FE->>PA: POST /api/chat
+    PA->>GPT: dados do usuário
+    GPT-->>PA: tool_call: openAccount(cpf, phone, motherName, birthDate, password)
+    PA->>PBS: POST /api/accounts<br/>{ name, cpf, email, keycloakUserId, ... }
+    PBS->>CM: POST /onboarding/v3/accounts (valida CPF)
+    CM-->>PBS: { accountId, status: APPROVED }
+    PBS->>PBS: Cria Account vinculada ao keycloakUserId
+    PBS-->>PA: { accountNumber, agency, name }
+    PA->>GPT: resultado
+    GPT-->>PA: (stream) "Conta criada com sucesso! Número: 001-1234567"
+    PA-->>FE: SSE tokens
+  </div>
+</div>
+
+<!-- 7. EXTRATO PDF -->
+<div class="card">
+  <h2>7. Extrato e Comprovante PDF</h2>
+  <p class="desc">Geração de PDF pelo agente (extrato) e automaticamente pelo PaymentEventPanel (comprovante de Pix).</p>
+  <div class="mermaid">
+sequenceDiagram
+    actor U as Usuário
+    participant FE as Frontend
+    participant PA as payment-agent
+    participant GPT as GPT-4o
+    participant PBS as payment-banking-service
+    participant PEP as PaymentEventPanel
+
+    Note over U,PBS: Extrato PDF (solicitado via chat)
+    U->>FE: "Me manda o extrato dos últimos 30 dias"
+    FE->>PA: POST /api/chat + Bearer JWT
+    PA->>GPT: mensagem + tool exportStatementPdf
+    GPT-->>PA: "Informe sua senha de transação"
+    PA-->>FE: SSE → PinPad trigger
+    U->>FE: PIN via PinPad
+    FE->>PA: POST /api/chat (PIN)
+    PA->>GPT: PIN recebido
+    GPT-->>PA: tool_call: exportStatementPdf(password, 30)
+    PA->>PBS: POST /api/statements/pdf<br/>{ accountNumber, transactionPassword, days: 30 }
+    PBS->>PBS: Gera PDF com iText 7<br/>(cabeçalho BACEN, resumo, lançamentos)
+    PBS->>PBS: PdfStatementStore.store(bytes) → token UUID (10 min)
+    PBS-->>PA: { downloadUrl: "/banking/api/statements/pdf/{token}" }
+    PA->>GPT: downloadUrl formatado
+    GPT-->>PA: (stream) "[Baixar Extrato PDF](/banking/api/statements/pdf/...)"
+    PA-->>FE: SSE → renderizado como PdfDownloadCard
+
+    Note over PEP,PBS: Comprovante de Pix (automático após confirmação)
+    PEP->>PEP: Detecta status PENDING → SUCCESS
+    PEP->>PBS: GET /banking/api/admin/transactions/{id}/receipt/pdf
+    PBS->>PBS: Gera comprovante com dados do Pix<br/>PdfStatementStore.store(bytes) → token
+    PBS-->>PEP: { downloadUrl: "/banking/api/admin/receipt/pdf/{token}" }
+    PEP->>FE: injectMessage("✅ Pix confirmado! [Baixar Comprovante PDF](...)")
+  </div>
+</div>
+
+<!-- 8. RBAC -->
+<div class="card">
+  <h2>8. Controle de Acesso por Role (RBAC)</h2>
+  <p class="desc">Roles definidas no Keycloak, propagadas via JWT e verificadas no frontend e no backend.</p>
+  <div class="mermaid">
+sequenceDiagram
+    actor A as Admin (douglasnogueiram)
+    actor U as Usuário (novo cadastro)
+    participant KC as Keycloak
+    participant FE as Frontend
+    participant PA as payment-agent<br/>SecurityConfig
+
+    Note over U,KC: Novo cadastro — role USER atribuída automaticamente
+    U->>KC: Cria conta (registrationAllowed: true)
+    KC->>KC: defaultRoles: ["USER"] aplicado
+    KC-->>U: JWT com realm_access.roles: ["USER", "default-roles-payment"]
+    U->>FE: Login
+    FE->>FE: hasRole("ADMIN") → false
+    FE->>FE: Exibe apenas aba Chat
+
+    Note over A,PA: Admin — acesso total
+    A->>KC: Login
+    KC-->>A: JWT com realm_access.roles: ["USER", "ADMIN"]
+    A->>FE: Carrega app
+    FE->>FE: hasRole("ADMIN") → true
+    FE->>FE: Exibe todas as abas
+
+    Note over U,PA: Proteção no backend (tentativa de acesso indevido)
+    U->>PA: PUT /api/voice-config (Bearer JWT com role USER)
+    PA->>PA: JwtAuthenticationConverter extrai ROLE_USER
+    PA->>PA: hasRole("ADMIN") → false
+    PA-->>U: 403 Forbidden
+
+    Note over A,PA: Admin pode configurar
+    A->>PA: PUT /api/voice-config (Bearer JWT com role ADMIN)
+    PA->>PA: hasRole("ADMIN") → true
+    PA-->>A: 200 OK
+  </div>
+</div>
+
+<footer>
+  Payment Agent System · <span id="dt2"></span> · <a href="https://github.com/douglasnogueiram/payment-agent-system">github.com/douglasnogueiram/payment-agent-system</a>
+</footer>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default', sequence: { actorMargin: 60, messageMargin: 40 } })
+  const d = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+  document.getElementById('dt').textContent = d
+  document.getElementById('dt2').textContent = d
+</script>
+</body>
+</html>
