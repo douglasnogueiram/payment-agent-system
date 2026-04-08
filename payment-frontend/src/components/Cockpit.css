@@ -1,46 +1,57 @@
+/* =========================================================
+   Meu Agente Pix — Cockpit (Admin dashboard)
+   ========================================================= */
+
 .cockpit {
   display: flex;
   height: 100%;
   gap: 0;
-  font-family: 'Courier New', monospace;
-  background: #0d1117;
-  color: #c9d1d9;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
 
 /* ── Transaction list ──────────────────────────────────────────────── */
 .cockpit-list {
   width: 340px;
   min-width: 280px;
-  border-right: 1px solid #21262d;
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--surface);
 }
 
 .cockpit-list-header {
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid #21262d;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #161b22;
+  background: var(--surface-2);
 }
 
 .cockpit-list-header h3 {
   margin: 0;
-  font-size: 0.82rem;
-  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8b949e;
+  font-weight: 700;
+  background: var(--pix-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .cockpit-refresh-badge {
-  font-size: 0.68rem;
-  color: #3fb950;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--success);
   animation: pulse 2s infinite;
+  letter-spacing: 0.06em;
 }
 
-@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 .cockpit-list-body {
   overflow-y: auto;
@@ -48,17 +59,21 @@
 }
 
 .cockpit-tx-row {
-  padding: 10px 16px;
-  border-bottom: 1px solid #161b22;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s ease;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
-.cockpit-tx-row:hover { background: #161b22; }
-.cockpit-tx-row.selected { background: #1c2128; border-left: 3px solid #c9a84c; }
+.cockpit-tx-row:hover { background: var(--surface-2); }
+
+.cockpit-tx-row.selected {
+  background: var(--surface-2);
+  border-left: 2px solid var(--pix);
+}
 
 .cockpit-tx-top {
   display: flex;
@@ -69,38 +84,51 @@
 .cockpit-tx-amount {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #f0f6fc;
+  color: var(--text);
 }
 
 .cockpit-tx-key {
   font-size: 0.72rem;
-  color: #8b949e;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 200px;
+  font-family: monospace;
 }
 
 .cockpit-tx-time {
-  font-size: 0.65rem;
-  color: #484f58;
+  font-size: 0.62rem;
+  color: var(--text-muted);
   margin-top: 1px;
 }
 
 /* ── Status badges ─────────────────────────────────────────────────── */
 .badge {
   font-size: 0.62rem;
-  padding: 2px 7px;
-  border-radius: 10px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.badge--SUCCESS { background: #0d4a1a; color: #3fb950; border: 1px solid #238636; }
-.badge--FAILED  { background: #4a0d0d; color: #f85149; border: 1px solid #da3633; }
+.badge--SUCCESS {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.badge--FAILED {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
 .badge--PENDING {
-  background: #4a3d0d; color: #d29922; border: 1px solid #9e6a03;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.25);
   animation: pulse 1.5s infinite;
 }
 
@@ -110,20 +138,22 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--bg);
 }
 
 .cockpit-detail-header {
-  padding: 14px 20px 10px;
-  border-bottom: 1px solid #21262d;
-  background: #161b22;
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .cockpit-detail-header h3 {
-  margin: 0 0 4px;
-  font-size: 0.82rem;
-  letter-spacing: 0.1em;
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8b949e;
+  font-weight: 700;
+  color: var(--text-secondary);
 }
 
 .cockpit-tx-meta {
@@ -134,17 +164,17 @@
 
 .cockpit-tx-meta span {
   font-size: 0.72rem;
-  color: #8b949e;
+  color: var(--text-secondary);
 }
 
 .cockpit-tx-meta strong {
-  color: #c9d1d9;
+  color: var(--text);
 }
 
 .cockpit-timeline {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 20px;
+  padding: 20px 24px;
 }
 
 .cockpit-empty {
@@ -152,14 +182,14 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #484f58;
-  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 /* ── Event rows ────────────────────────────────────────────────────── */
 .event-row {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 0;
   position: relative;
 }
@@ -168,10 +198,10 @@
   content: '';
   position: absolute;
   left: 15px;
-  top: 28px;
+  top: 30px;
   width: 2px;
   bottom: -8px;
-  background: #21262d;
+  background: var(--border);
 }
 
 .event-icon {
@@ -186,47 +216,49 @@
   z-index: 1;
 }
 
-.event-icon--DICT_LOOKUP      { background: #0d2a4a; color: #58a6ff; border: 1px solid #1f6feb; }
-.event-icon--DICT_FOUND       { background: #0d2a4a; color: #58a6ff; border: 1px solid #1f6feb; }
-.event-icon--BALANCE_DEBITED  { background: #4a1d1d; color: #ffa657; border: 1px solid #bd5b00; }
-.event-icon--CELCOIN_SUBMITTED{ background: #1a0d4a; color: #d2a8ff; border: 1px solid #8957e5; }
-.event-icon--AWAITING_WEBHOOK { background: #4a3d0d; color: #d29922; border: 1px solid #9e6a03; }
-.event-icon--WEBHOOK_RECEIVED { background: #1a4a1d; color: #3fb950; border: 1px solid #238636; }
-.event-icon--FINALIZED        { background: #0d4a1a; color: #3fb950; border: 1px solid #238636; }
-.event-icon--ERROR            { background: #4a0d0d; color: #f85149; border: 1px solid #da3633; }
+.event-icon--DICT_LOOKUP       { background: rgba(0, 148, 255, 0.12); color: #0094FF; border: 1px solid rgba(0, 148, 255, 0.25); }
+.event-icon--DICT_FOUND        { background: rgba(0, 148, 255, 0.12); color: #0094FF; border: 1px solid rgba(0, 148, 255, 0.25); }
+.event-icon--BALANCE_DEBITED   { background: rgba(245, 158, 11, 0.12); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.25); }
+.event-icon--CELCOIN_SUBMITTED { background: rgba(168, 85, 247, 0.12); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.25); }
+.event-icon--AWAITING_WEBHOOK  { background: rgba(245, 158, 11, 0.12); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.25); animation: pulse 1.5s infinite; }
+.event-icon--WEBHOOK_RECEIVED  { background: rgba(16, 185, 129, 0.12); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.25); }
+.event-icon--FINALIZED         { background: rgba(16, 185, 129, 0.12); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.25); }
+.event-icon--ERROR             { background: rgba(239, 68, 68, 0.12); color: var(--error); border: 1px solid rgba(239, 68, 68, 0.25); }
 
 .event-body {
   flex: 1;
-  padding-bottom: 16px;
+  padding-bottom: 18px;
 }
 
 .event-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .event-type {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #8b949e;
-  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .event-time {
-  font-size: 0.65rem;
-  color: #484f58;
+  font-size: 0.62rem;
+  color: var(--text-muted);
   margin-left: auto;
+  font-family: monospace;
 }
 
 .event-message {
-  font-size: 0.78rem;
-  color: #c9d1d9;
-  line-height: 1.4;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .event-row--AWAITING_WEBHOOK .event-message {
-  color: #d29922;
+  color: var(--warning);
   animation: pulse 2s infinite;
 }

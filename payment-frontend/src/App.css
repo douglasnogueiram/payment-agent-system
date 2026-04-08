@@ -1,48 +1,74 @@
 /* =========================================================
-   App shell
+   Meu Agente Pix — App Shell
    ========================================================= */
+
 .app {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background: var(--bg);
 }
 
-/* ── Tabs ──────────────────────────────────────────────── */
+/* ── Tab Bar ──────────────────────────────────────────────── */
 .tab-bar {
   display: flex;
-  background: var(--navy);
-  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  padding: 0 8px;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+.tab-bar::-webkit-scrollbar {
+  height: 0;
 }
 
 .tab {
-  padding: 10px 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
   background: transparent;
   border: none;
-  color: #ccd9e8;
-  font-size: 0.9rem;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
   font-weight: 500;
-  transition: color .15s, border-bottom .15s;
-  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: color 0.2s ease, border-bottom-color 0.2s ease, background 0.2s ease;
+  border-radius: 0;
+  letter-spacing: 0.01em;
 }
 
-.tab:hover { color: var(--white); }
+.tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+}
 
 .tab--active {
-  color: var(--gold);
-  border-bottom-color: var(--gold);
+  color: var(--pix);
+  border-bottom-color: var(--pix);
+  font-weight: 600;
 }
 
-/* ── Main content ──────────────────────────────────────── */
+/* Icon slot inside tabs */
+.tab-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+/* ── Main content ──────────────────────────────────────────── */
 .main-content {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: var(--bg);
 }
 
-/* ── Chat layout (SplitView) ───────────────────────────── */
+/* ── Chat layout (SplitView) ───────────────────────────────── */
 .chat-layout {
   display: flex;
   flex: 1;
@@ -54,11 +80,23 @@
    Mobile  (≤ 768px)
    ========================================================= */
 @media (max-width: 768px) {
+  .tab-bar {
+    padding: 0;
+  }
+
   .tab {
     flex: 1;
     text-align: center;
     padding: 10px 6px;
-    font-size: 0.82rem;
+    font-size: 0.75rem;
+    justify-content: center;
+    flex-direction: column;
+    gap: 3px;
+    border-bottom-width: 2px;
+  }
+
+  .tab-icon {
+    font-size: 1.1rem;
   }
 
   .chat-layout {

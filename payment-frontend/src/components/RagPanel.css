@@ -1,3 +1,7 @@
+/* =========================================================
+   Meu Agente Pix — RAG / Knowledge Base Panel
+   ========================================================= */
+
 .rag-panel {
   padding: 24px;
   overflow-y: auto;
@@ -6,17 +10,23 @@
   flex-direction: column;
   gap: 24px;
   max-width: 1100px;
+  background: var(--bg);
 }
 
 /* ── Card ──────────────────────────────────────────────── */
 .rag-card {
-  background: var(--white);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 22px 24px;
+  border-radius: 20px;
+  padding: 24px 26px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.rag-card:hover {
+  border-color: var(--border-bright);
 }
 
 .rag-card__header {
@@ -29,15 +39,19 @@
 .rag-card__title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text);
   margin: 0;
+  background: var(--pix-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .rag-card__desc {
   font-size: 0.84rem;
-  color: var(--muted);
+  color: var(--text-secondary);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ── Form ──────────────────────────────────────────────── */
@@ -50,7 +64,7 @@
 .rag-form__row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .rag-form__actions {
@@ -61,82 +75,151 @@
 }
 
 .rag-label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
 }
 
 .rag-input {
-  padding: 8px 12px;
+  padding: 9px 14px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 0.88rem;
   outline: none;
-  transition: border-color .15s;
+  background: var(--surface-2);
+  color: var(--text);
+  transition: border-color 0.2s ease;
 }
 
-.rag-input:focus { border-color: var(--navy); }
-.rag-input--error { border-color: #d93025; }
-.rag-input--error:focus { border-color: #d93025; }
+.rag-input::placeholder { color: var(--text-muted); }
+.rag-input:focus { border-color: var(--border-bright); }
+.rag-input--error { border-color: var(--error); }
+.rag-input--error:focus { border-color: var(--error); }
 
 .rag-field-error {
-  font-size: 0.78rem;
-  color: #d93025;
+  font-size: 0.75rem;
+  color: var(--error);
   margin-top: 4px;
   display: block;
 }
 
+/* Drop zone style for file input */
 .rag-file-input {
   font-size: 0.85rem;
-  color: var(--muted);
-  padding: 4px 0;
+  color: var(--text-secondary);
+  padding: 12px 16px;
+  border: 2px dashed var(--border-bright);
+  border-radius: 12px;
+  background: rgba(0, 189, 174, 0.03);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  display: block;
+  text-align: center;
+}
+
+.rag-file-input:hover {
+  border-color: var(--pix);
+  background: rgba(0, 189, 174, 0.06);
 }
 
 /* ── Buttons ───────────────────────────────────────────── */
 .rag-btn {
-  padding: 8px 18px;
+  padding: 8px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity .15s, background .15s;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.15s ease;
 }
 
-.rag-btn--sm { padding: 5px 12px; font-size: 0.78rem; }
+.rag-btn--sm { padding: 5px 14px; font-size: 0.78rem; }
 
-.rag-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.rag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.rag-btn--primary   { background: var(--navy); color: var(--white); }
-.rag-btn--secondary { background: #e8eef4; color: var(--navy); }
-.rag-btn--danger    { background: #ffebee; color: #c62828; }
-.rag-btn--ghost     { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.rag-btn--primary {
+  background: var(--pix-gradient);
+  color: var(--white);
+}
 
-.rag-btn--primary:not(:disabled):hover   { opacity: 0.88; }
-.rag-btn--secondary:not(:disabled):hover { background: #d5e2ee; }
-.rag-btn--danger:not(:disabled):hover    { background: #ffcdd2; }
-.rag-btn--ghost:not(:disabled):hover     { background: #f5f5f5; }
+.rag-btn--secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.rag-btn--danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.rag-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.rag-btn--primary:not(:disabled):hover   { opacity: 0.85; transform: translateY(-1px); }
+.rag-btn--secondary:not(:disabled):hover { background: var(--surface-3); }
+.rag-btn--danger:not(:disabled):hover    { background: rgba(239, 68, 68, 0.18); }
+.rag-btn--ghost:not(:disabled):hover     { background: var(--surface-2); }
 
 /* ── Feedback ──────────────────────────────────────────── */
 .rag-feedback {
-  padding: 10px 14px;
-  border-radius: 6px;
+  padding: 10px 16px;
+  border-radius: 12px;
   font-size: 0.84rem;
   line-height: 1.5;
 }
 
-.rag-feedback--success { background: #e8f5e9; color: #2e7d32; }
-.rag-feedback--error   { background: #ffebee; color: #c62828; }
-.rag-feedback--info    { background: #e3f2fd; color: #1565c0; }
-.rag-feedback--warning { background: #fff8e1; color: #f57f17; }
+.rag-feedback--success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.rag-feedback--error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.rag-feedback--info {
+  background: rgba(0, 148, 255, 0.1);
+  color: #0094FF;
+  border: 1px solid rgba(0, 148, 255, 0.2);
+}
+
+.rag-feedback--warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* ── Progress bar ───────────────────────────────────────── */
+.rag-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.rag-progress-bar {
+  height: 100%;
+  background: var(--pix-gradient);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
 
 /* ── Empty state ───────────────────────────────────────── */
 .rag-empty {
   font-size: 0.85rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin: 0;
   text-align: center;
-  padding: 16px 0;
+  padding: 24px 0;
 }
 
 /* ── Document table ────────────────────────────────────── */
@@ -148,59 +231,82 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.82rem;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .rag-table th {
   text-align: left;
-  padding: 8px 10px;
-  background: #f5f7fa;
-  color: var(--navy);
-  font-weight: 700;
-  border-bottom: 2px solid var(--border);
+  padding: 10px 12px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
 .rag-table td {
-  padding: 9px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  color: var(--text);
 }
 
-.rag-table__row:hover td { background: #fafbfc; }
+.rag-table__row:hover td { background: var(--surface-2); }
 
-.rag-table__name { font-weight: 600; color: var(--navy); }
-.rag-table__date { white-space: nowrap; color: var(--muted); }
-.rag-table__hash { font-family: monospace; font-size: 0.78rem; color: var(--muted); }
+.rag-table__name { font-weight: 600; color: var(--text); }
+.rag-table__date { white-space: nowrap; color: var(--text-muted); }
+.rag-table__hash { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); }
 .rag-table__actions { display: flex; gap: 6px; justify-content: flex-end; }
 
 /* ── Badge ─────────────────────────────────────────────── */
 .rag-badge {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.72rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
   font-weight: 700;
-  background: #e3f2fd;
-  color: #1565c0;
+  background: var(--surface-2);
+  color: var(--text-secondary);
 }
 
-.rag-badge--created  { background: #e8f5e9; color: #2e7d32; }
-.rag-badge--updated  { background: #fff8e1; color: #f57f17; }
-.rag-badge--deleted  { background: #ffebee; color: #c62828; }
+.rag-badge--created {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.rag-badge--updated {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.rag-badge--deleted {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
 
 /* ── Version history ───────────────────────────────────── */
-.rag-table__versions-row td { padding: 0; background: #f9fbfd; }
+.rag-table__versions-row td {
+  padding: 0;
+  background: var(--surface-2);
+}
 
 .rag-versions {
-  padding: 12px 16px;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .rag-versions strong {
   font-size: 0.8rem;
-  color: var(--navy);
+  color: var(--text-secondary);
 }
 
 .rag-versions-table {
@@ -211,17 +317,20 @@
 
 .rag-versions-table th {
   text-align: left;
-  padding: 5px 8px;
-  background: #eef2f7;
-  color: var(--navy);
+  padding: 6px 10px;
+  background: var(--surface-3);
+  color: var(--text-secondary);
   font-weight: 600;
   border-bottom: 1px solid var(--border);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
 }
 
 .rag-versions-table td {
-  padding: 6px 8px;
-  border-bottom: 1px solid #eee;
-  color: var(--muted);
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 
 /* =========================================================

@@ -1,9 +1,14 @@
+/* =========================================================
+   Meu Agente Pix — Voice Config Panel
+   ========================================================= */
+
 .voice-config {
-  max-width: 760px;
+  max-width: 780px;
   margin: 0 auto;
   padding: 28px 24px;
   overflow-y: auto;
   height: 100%;
+  background: var(--bg);
 }
 
 /* ── Header ────────────────────────────────────────────── */
@@ -12,20 +17,23 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
   flex-wrap: wrap;
 }
 
 .voice-config__title {
   font-size: 1.3rem;
   font-weight: 700;
-  color: var(--navy);
   margin: 0 0 4px;
+  background: var(--pix-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .voice-config__subtitle {
   font-size: 0.85rem;
-  color: var(--muted);
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -39,96 +47,115 @@
 .vc-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 8px;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: 999px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: background .15s, opacity .15s;
+  transition: background 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
 }
 
 .vc-btn--primary {
-  background: var(--navy);
+  background: var(--pix-gradient);
   color: var(--white);
 }
 
-.vc-btn--primary:hover { background: #254d7a; }
+.vc-btn--primary:hover { opacity: 0.85; transform: translateY(-1px); }
 
 .vc-btn--ghost {
   background: transparent;
-  color: var(--muted);
+  color: var(--text-secondary);
   border: 1px solid var(--border);
 }
 
-.vc-btn--ghost:hover { background: #f0f2f5; }
+.vc-btn--ghost:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border-bright);
+}
 
-.vc-btn--loading { opacity: 0.8; cursor: default; }
+.vc-btn--loading { opacity: 0.75; cursor: default; }
 
 .vc-btn--saved {
-  background: #1a7f4b;
-  color: var(--white);
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   cursor: default;
 }
 
 .vc-btn--error {
-  background: #d93025;
-  color: var(--white);
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   cursor: default;
 }
 
 .vc-spinner {
   width: 13px;
   height: 13px;
-  border: 2px solid rgba(255,255,255,.4);
+  border: 2px solid rgba(255,255,255,.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin .7s linear infinite;
+  animation: vc-spin 0.7s linear infinite;
   display: inline-block;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes vc-spin { to { transform: rotate(360deg); } }
 
 /* ── Sections ──────────────────────────────────────────── */
 .vc-section {
   margin-bottom: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px 22px;
+  transition: border-color 0.2s ease;
+}
+
+.vc-section:hover {
+  border-color: var(--border-bright);
 }
 
 .vc-section__title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--navy);
-  margin: 0 0 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 
 .vc-section__value {
   margin-left: auto;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: var(--navy);
-  background: #e8f0fb;
-  padding: 2px 10px;
-  border-radius: 12px;
+  color: var(--pix);
+  background: rgba(0, 189, 174, 0.1);
+  padding: 2px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 189, 174, 0.2);
 }
 
 .vc-section__badge {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  background: #e8f0fb;
-  color: var(--navy);
-  padding: 2px 8px;
-  border-radius: 10px;
-  letter-spacing: .02em;
+  background: rgba(0, 189, 174, 0.1);
+  color: var(--pix);
+  padding: 2px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0, 189, 174, 0.2);
 }
 
 .vc-section__hint {
-  font-size: 0.83rem;
-  color: var(--muted);
-  margin: -6px 0 10px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: -10px 0 12px;
 }
 
 /* ── Voice cards ───────────────────────────────────────── */
@@ -143,18 +170,21 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border: 2px solid var(--border);
-  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
   cursor: pointer;
-  transition: border-color .15s, background .15s;
-  background: var(--white);
+  transition: border-color 0.2s ease, background 0.2s ease;
+  background: var(--surface-2);
 }
 
-.vc-voice-card:hover { border-color: #aac0d8; }
+.vc-voice-card:hover {
+  border-color: var(--border-bright);
+  background: var(--surface-3);
+}
 
 .vc-voice-card--selected {
-  border-color: var(--navy);
-  background: #f0f5fc;
+  border-color: var(--pix);
+  background: rgba(0, 189, 174, 0.08);
 }
 
 .vc-voice-card__info {
@@ -164,37 +194,41 @@
 }
 
 .vc-voice-card__name {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--text);
 }
 
 .vc-voice-card__desc {
-  font-size: 0.78rem;
-  color: var(--muted);
+  font-size: 0.76rem;
+  color: var(--text-muted);
 }
 
 .vc-preview-btn {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: var(--white);
-  color: var(--muted);
+  background: var(--surface);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
-  transition: color .15s, border-color .15s, background .15s;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
-.vc-preview-btn:hover { color: var(--navy); border-color: var(--navy); }
+.vc-preview-btn:hover {
+  color: var(--pix);
+  border-color: var(--border-bright);
+  background: rgba(0, 189, 174, 0.08);
+}
 
 .vc-preview-btn--active {
-  color: var(--navy);
-  border-color: var(--navy);
-  background: #e8f0fb;
+  color: var(--pix);
+  border-color: var(--pix);
+  background: rgba(0, 189, 174, 0.12);
 }
 
 /* ── Slider ────────────────────────────────────────────── */
@@ -202,20 +236,26 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .vc-slider-label {
-  font-size: 0.78rem;
-  color: var(--muted);
+  font-size: 0.75rem;
+  color: var(--text-muted);
   flex-shrink: 0;
   width: 36px;
 }
 
 .vc-slider {
   flex: 1;
-  accent-color: var(--navy);
+  accent-color: var(--pix);
   height: 4px;
+  cursor: pointer;
+}
+
+/* Custom range track styling */
+.vc-slider::-webkit-slider-thumb {
+  background: var(--pix);
 }
 
 .vc-speed-presets {
@@ -226,51 +266,60 @@
 
 /* ── Presets ───────────────────────────────────────────── */
 .vc-preset {
-  padding: 4px 12px;
-  border-radius: 14px;
+  padding: 5px 14px;
+  border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--white);
-  font-size: 0.82rem;
-  color: var(--text);
+  background: var(--surface-2);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background .15s, border-color .15s, color .15s;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.vc-preset:hover { border-color: var(--navy); color: var(--navy); }
+.vc-preset:hover {
+  border-color: var(--border-bright);
+  color: var(--pix);
+  background: rgba(0, 189, 174, 0.06);
+}
 
 .vc-preset--active {
-  background: var(--navy);
-  border-color: var(--navy);
+  background: var(--pix-gradient);
+  border-color: transparent;
   color: var(--white);
+  font-weight: 600;
 }
 
-/* ── Instructions ──────────────────────────────────────── */
+/* ── Instructions textarea ──────────────────────────────── */
 .vc-instructions {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 12px;
+  padding: 12px 14px;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.6;
   resize: vertical;
   outline: none;
   color: var(--text);
+  background: var(--surface-2);
   box-sizing: border-box;
+  transition: border-color 0.2s ease;
+  min-height: 100px;
 }
 
-.vc-instructions:focus { border-color: var(--navy); }
+.vc-instructions::placeholder { color: var(--text-muted); }
+.vc-instructions:focus { border-color: var(--border-bright); }
 
 .vc-instructions-presets {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .vc-instructions-presets__label {
-  font-size: 0.8rem;
-  color: var(--muted);
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 /* ── Format cards ──────────────────────────────────────── */
@@ -284,34 +333,37 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 10px 14px;
-  border: 2px solid var(--border);
-  border-radius: 10px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
   cursor: pointer;
-  transition: border-color .15s, background .15s;
-  background: var(--white);
+  transition: border-color 0.2s ease, background 0.2s ease;
+  background: var(--surface-2);
   min-width: 120px;
 }
 
 .vc-format-card input { display: none; }
 
-.vc-format-card:hover { border-color: #aac0d8; }
+.vc-format-card:hover {
+  border-color: var(--border-bright);
+  background: var(--surface-3);
+}
 
 .vc-format-card--selected {
-  border-color: var(--navy);
-  background: #f0f5fc;
+  border-color: var(--pix);
+  background: rgba(0, 189, 174, 0.08);
 }
 
 .vc-format-card__name {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--text);
 }
 
 .vc-format-card__desc {
-  font-size: 0.75rem;
-  color: var(--muted);
-  line-height: 1.3;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 /* ── Mobile ────────────────────────────────────────────── */

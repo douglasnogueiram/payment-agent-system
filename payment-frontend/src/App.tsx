@@ -47,7 +47,7 @@ export default function App() {
           className={`tab${activeTab === 'chat' ? ' tab--active' : ''}`}
           onClick={() => setActiveTab('chat')}
         >
-          Chat
+          <span className="tab-icon">💬</span> Chat
         </button>
         {isAdmin && (
           <>
@@ -55,31 +55,31 @@ export default function App() {
               className={`tab${activeTab === 'transactions' ? ' tab--active' : ''}`}
               onClick={() => setActiveTab('transactions')}
             >
-              Transacoes
+              <span className="tab-icon">📊</span> Transações
             </button>
             <button
               className={`tab${activeTab === 'cockpit' ? ' tab--active' : ''}`}
               onClick={() => setActiveTab('cockpit')}
             >
-              Cockpit
+              <span className="tab-icon">🎛️</span> Cockpit
             </button>
             <button
               className={`tab${activeTab === 'rag' ? ' tab--active' : ''}`}
               onClick={() => setActiveTab('rag')}
             >
-              Base de Conhecimento
+              <span className="tab-icon">📚</span> Conhecimento
             </button>
             <button
               className={`tab${activeTab === 'voice' ? ' tab--active' : ''}`}
               onClick={() => setActiveTab('voice')}
             >
-              Configuracao de Voz
+              <span className="tab-icon">🔊</span> Voz
             </button>
             <button
               className={`tab${activeTab === 'agent' ? ' tab--active' : ''}`}
               onClick={() => setActiveTab('agent')}
             >
-              Configuracao do Agente
+              <span className="tab-icon">🤖</span> Agente
             </button>
           </>
         )}

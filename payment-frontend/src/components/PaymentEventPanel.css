@@ -1,5 +1,5 @@
 /* ================================================================
-   PaymentEventPanel — friendly Pix tracking sidebar
+   Meu Agente Pix — PaymentEventPanel (Pix tracking sidebar)
    ================================================================ */
 
 .pep {
@@ -7,9 +7,22 @@
   min-width: 300px;
   display: flex;
   flex-direction: column;
-  background: #f8f9fa;
-  border-left: 1px solid #e1e4e8;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
   overflow: hidden;
+  position: relative;
+}
+
+/* Subtle top gradient strip */
+.pep::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--pix-gradient);
+  z-index: 1;
 }
 
 /* ── Collapsed strip ──────────────────────────────────────────── */
@@ -21,17 +34,17 @@
   justify-content: center;
   gap: 10px;
   padding: 12px 0;
-  background: #f8f9fa;
-  transition: background 0.15s;
+  background: var(--surface);
+  transition: background 0.2s ease;
 }
 
-.pep--collapsed:hover { background: #eef0f3; }
+.pep--collapsed:hover { background: var(--surface-2); }
 
 .pep-dot-pulse {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #f59e0b;
+  background: var(--pix);
   animation: pep-pulse 1.2s infinite;
   flex-shrink: 0;
 }
@@ -39,16 +52,16 @@
 .pep-label-vert {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .pep-expand-arrow {
   font-size: 0.6rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   margin-top: auto;
 }
 
@@ -58,16 +71,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px 12px;
-  border-bottom: 1px solid #e1e4e8;
-  background: #fff;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
   flex-shrink: 0;
 }
 
 .pep-header-title {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #1f2937;
-  letter-spacing: 0.01em;
+  background: var(--pix-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .pep-header-right {
@@ -77,26 +94,27 @@
 }
 
 .pep-live {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: #f59e0b;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--pix);
+  letter-spacing: 0.08em;
   animation: pep-pulse 1.5s infinite;
 }
 
 .pep-collapse-btn {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 0.65rem;
   cursor: pointer;
-  padding: 2px 5px;
-  border-radius: 4px;
-  transition: background 0.15s, color 0.15s;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .pep-collapse-btn:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-2);
+  color: var(--text-secondary);
 }
 
 /* ── Empty state ──────────────────────────────────────────────── */
@@ -113,13 +131,13 @@
 
 .pep-empty-icon {
   font-size: 2rem;
-  opacity: 0.4;
+  opacity: 0.25;
 }
 
 .pep-empty-text {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  line-height: 1.5;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.6;
 }
 
 /* ── Body ─────────────────────────────────────────────────────── */
@@ -134,33 +152,33 @@
 
 /* ── Amount/recipient card ────────────────────────────────────── */
 .pep-card {
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .pep-card--pending {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
+  background: var(--surface-2);
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .pep-card--done {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--surface-2);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .pep-card--failed {
-  background: #fff5f5;
-  border: 1px solid #fecaca;
+  background: var(--surface-2);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .pep-card-amount {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #111827;
-  letter-spacing: -0.02em;
+  color: var(--text);
+  letter-spacing: -0.03em;
 }
 
 .pep-card-recipient {
@@ -170,22 +188,22 @@
 }
 
 .pep-card-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #9ca3af;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .pep-card-name {
   font-size: 0.82rem;
-  color: #111827;
+  color: var(--text);
   font-weight: 700;
 }
 
 .pep-card-key {
-  font-size: 0.78rem;
-  color: #374151;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -194,8 +212,8 @@
 }
 
 .pep-card-e2e {
-  font-size: 0.68rem;
-  color: #6b7280;
+  font-size: 0.65rem;
+  color: var(--text-muted);
   font-family: monospace;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -204,8 +222,8 @@
 }
 
 .pep-card-time {
-  font-size: 0.68rem;
-  color: #9ca3af;
+  font-size: 0.65rem;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -213,12 +231,12 @@
 .pep-active-msg {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 0.78rem;
-  color: #6b7280;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   padding: 10px 12px;
 }
 
@@ -226,51 +244,64 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid #e5e7eb;
-  border-top-color: #f59e0b;
+  border: 2px solid var(--border);
+  border-top-color: var(--pix);
   animation: pep-spin 0.8s linear infinite;
   flex-shrink: 0;
 }
 
 /* ── Result messages ──────────────────────────────────────────── */
 .pep-result-msg {
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 14px;
   font-size: 0.8rem;
   font-weight: 600;
 }
 
 .pep-result-msg--done {
-  background: #dcfce7;
-  color: #15803d;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .pep-result-msg--failed {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 /* ── Receipt button ───────────────────────────────────────────── */
 .pep-receipt-btn {
   width: 100%;
   padding: 11px 16px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: none;
-  background: #1d4ed8;
+  background: var(--pix-gradient);
   color: #fff;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
+  transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
-.pep-receipt-btn:hover:not(:disabled) { background: #1e40af; }
-.pep-receipt-btn:disabled { opacity: 0.6; cursor: default; }
+.pep-receipt-btn:hover:not(:disabled) {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.pep-receipt-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
 .pep-receipt-btn--failed {
-  background: #6b7280;
+  background: var(--surface-3);
+  color: var(--text-secondary);
 }
-.pep-receipt-btn--failed:hover:not(:disabled) { background: #4b5563; }
+
+.pep-receipt-btn--failed:hover:not(:disabled) {
+  opacity: 0.8;
+}
 
 /* ── Step tracker ─────────────────────────────────────────────── */
 .pep-steps {
@@ -297,14 +328,14 @@
   width: 2px;
   flex: 1;
   min-height: 10px;
-  background: #e5e7eb;
-  transition: background 0.4s;
+  background: var(--border);
+  transition: background 0.4s ease;
 }
 
 .pep-step-line--none   { background: transparent; min-height: 6px; }
-.pep-step-line--done   { background: #22c55e; }
-.pep-step-line--active { background: linear-gradient(#22c55e, #e5e7eb); }
-.pep-step-line--failed { background: #ef4444; }
+.pep-step-line--done   { background: var(--success); }
+.pep-step-line--active { background: linear-gradient(var(--success), var(--border)); }
+.pep-step-line--failed { background: var(--error); }
 
 .pep-step-circle {
   width: 28px;
@@ -314,32 +345,37 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
-.pep-step--done   .pep-step-circle { background: #22c55e; }
-.pep-step--active .pep-step-circle { background: #fff; border: 2px solid #f59e0b; }
-.pep-step--failed .pep-step-circle { background: #ef4444; }
-.pep-step--idle   .pep-step-circle { background: #fff; border: 2px solid #e5e7eb; }
+.pep-step--done   .pep-step-circle { background: var(--success); }
+.pep-step--active .pep-step-circle { background: var(--surface); border: 2px solid var(--pix); animation: step-glow 1.5s infinite; }
+.pep-step--failed .pep-step-circle { background: var(--error); }
+.pep-step--idle   .pep-step-circle { background: var(--surface-2); border: 2px solid var(--border); }
+
+@keyframes step-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 189, 174, 0.4); }
+  50%       { box-shadow: 0 0 0 5px rgba(0, 189, 174, 0); }
+}
 
 .pep-step-icon {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
   color: #fff;
 }
 
 .pep-step-num {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .pep-step-spinner {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid #fde68a;
-  border-top-color: #f59e0b;
+  border: 2px solid rgba(0, 189, 174, 0.2);
+  border-top-color: var(--pix);
   animation: pep-spin 0.8s linear infinite;
 }
 
@@ -355,25 +391,25 @@
 .pep-step-label {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #1f2937;
-  transition: color 0.3s;
+  color: var(--text);
+  transition: color 0.3s ease;
 }
 
-.pep-step--idle   .pep-step-label { color: #9ca3af; }
-.pep-step--active .pep-step-label { color: #92400e; }
-.pep-step--done   .pep-step-label { color: #166534; }
-.pep-step--failed .pep-step-label { color: #991b1b; }
+.pep-step--idle   .pep-step-label { color: var(--text-muted); }
+.pep-step--active .pep-step-label { color: var(--pix); }
+.pep-step--done   .pep-step-label { color: var(--success); }
+.pep-step--failed .pep-step-label { color: var(--error); }
 
 .pep-step-sub {
   font-size: 0.72rem;
-  color: #6b7280;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
 /* ── Animations ───────────────────────────────────────────────── */
 @keyframes pep-pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.35; }
+  50%       { opacity: 0.3; }
 }
 
 @keyframes pep-spin {

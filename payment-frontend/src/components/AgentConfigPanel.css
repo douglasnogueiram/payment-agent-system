@@ -1,15 +1,21 @@
+/* =========================================================
+   Meu Agente Pix — Agent Config Panel
+   ========================================================= */
+
 .agent-config {
-  max-width: 860px;
+  max-width: 880px;
   margin: 0 auto;
   padding: 28px 24px;
   height: 100%;
   overflow-y: auto;
+  background: var(--bg);
 }
 
 .agent-config__loading {
-  padding: 40px;
+  padding: 60px;
   text-align: center;
-  color: var(--muted);
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 /* ── Header ────────────────────────────────────────────────── */
@@ -18,20 +24,23 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
 }
 
 .agent-config__title {
   font-size: 1.3rem;
   font-weight: 700;
-  color: var(--navy);
   margin: 0 0 4px;
+  background: var(--pix-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .agent-config__subtitle {
   font-size: 0.85rem;
-  color: var(--muted);
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -45,92 +54,139 @@
 .ac-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 8px;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: 999px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: background .15s, opacity .15s;
+  transition: background 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
 }
 
-.ac-btn--primary { background: var(--navy); color: var(--white); }
-.ac-btn--primary:hover { background: #254d7a; }
-.ac-btn--ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-.ac-btn--ghost:hover { background: #f0f2f5; }
-.ac-btn--ghost:disabled { opacity: 0.4; cursor: default; }
-.ac-btn--loading { opacity: 0.8; cursor: default; }
-.ac-btn--saved { background: #1a7f4b; color: var(--white); cursor: default; }
-.ac-btn--error { background: #d93025; color: var(--white); cursor: default; }
-.ac-btn--sm { padding: 4px 12px; font-size: 0.8rem; }
+.ac-btn--primary {
+  background: var(--pix-gradient);
+  color: var(--white);
+}
+
+.ac-btn--primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+.ac-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.ac-btn--ghost:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border-bright);
+}
+
+.ac-btn--ghost:disabled { opacity: 0.35; cursor: default; }
+
+.ac-btn--loading { opacity: 0.75; cursor: default; }
+
+.ac-btn--saved {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  cursor: default;
+}
+
+.ac-btn--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  cursor: default;
+}
+
+.ac-btn--sm { padding: 5px 14px; font-size: 0.8rem; }
 
 .ac-spinner {
   width: 13px;
   height: 13px;
-  border: 2px solid rgba(255,255,255,.4);
+  border: 2px solid rgba(255,255,255,.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: ac-spin .7s linear infinite;
+  animation: ac-spin 0.7s linear infinite;
   display: inline-block;
 }
 
 @keyframes ac-spin { to { transform: rotate(360deg); } }
 
-/* ── Editor ────────────────────────────────────────────────── */
+/* ── Editor section ────────────────────────────────────────── */
 .agent-config__editor-section {
-  margin-bottom: 32px;
+  margin-bottom: 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px 24px;
+  transition: border-color 0.2s ease;
+}
+
+.agent-config__editor-section:hover {
+  border-color: var(--border-bright);
 }
 
 .agent-config__textarea {
   width: 100%;
-  min-height: 380px;
+  min-height: 400px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 16px 18px;
   font-size: 0.875rem;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  line-height: 1.6;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  line-height: 1.7;
   resize: vertical;
   outline: none;
   color: var(--text);
+  background: var(--surface-2);
   box-sizing: border-box;
-  transition: border-color .15s;
+  transition: border-color 0.2s ease;
 }
 
-.agent-config__textarea:focus { border-color: var(--navy); }
+.agent-config__textarea::placeholder { color: var(--text-muted); }
+.agent-config__textarea:focus { border-color: var(--border-bright); }
 
-.agent-config__textarea--dirty { border-color: #e6a817; }
-.agent-config__textarea--dirty:focus { border-color: #c98f00; }
+.agent-config__textarea--dirty {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.agent-config__textarea--dirty:focus {
+  border-color: var(--warning);
+}
 
 .agent-config__desc-row {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .agent-config__desc-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 9px 14px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 0.875rem;
   outline: none;
   color: var(--text);
+  background: var(--surface-2);
   box-sizing: border-box;
+  transition: border-color 0.2s ease;
 }
 
-.agent-config__desc-input:focus { border-color: var(--navy); }
-.agent-config__desc-input::placeholder { color: var(--muted); }
+.agent-config__desc-input:focus { border-color: var(--border-bright); }
+.agent-config__desc-input::placeholder { color: var(--text-muted); }
 
 /* ── History ───────────────────────────────────────────────── */
 .agent-config__history-title {
   font-size: 1rem;
-  font-weight: 600;
-  color: var(--navy);
-  margin: 0 0 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 16px;
 }
 
 .agent-config__empty {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -142,59 +198,68 @@
 
 .ac-version {
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  background: var(--white);
-  transition: border-color .15s;
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: var(--surface);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.ac-version:hover {
+  border-color: var(--border-bright);
+  background: var(--surface-2);
 }
 
 .ac-version--active {
-  border-color: var(--navy);
-  background: #f0f5fc;
+  border-color: var(--pix);
+  background: rgba(0, 189, 174, 0.05);
 }
 
 .ac-version__meta {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 
 .ac-version__id {
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text);
   font-size: 0.875rem;
 }
 
 .ac-version__badge {
-  background: var(--navy);
+  background: var(--pix-gradient);
   color: white;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
-  letter-spacing: .03em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .ac-version__date {
-  font-size: 0.8rem;
-  color: var(--muted);
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 .ac-version__desc {
   font-size: 0.8rem;
-  color: var(--text);
+  color: var(--text-secondary);
   font-style: italic;
 }
 
 .ac-version__preview {
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
   white-space: pre-wrap;
-  margin-bottom: 10px;
-  line-height: 1.4;
+  margin-bottom: 12px;
+  line-height: 1.5;
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 8px 10px;
 }
 
 /* ── Mobile ────────────────────────────────────────────────── */
@@ -202,9 +267,11 @@
   .agent-config {
     padding: 16px 14px;
   }
+
   .agent-config__header {
     flex-direction: column;
   }
+
   .agent-config__textarea {
     min-height: 260px;
   }
